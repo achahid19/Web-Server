@@ -3,6 +3,7 @@
 /**
  * TODO list
  * 
+ * implement epoll mechanism
  * handle fails erros properly.
  * free epoll() stuffs.
  */
@@ -17,9 +18,10 @@
  * Return: void.
  */
 server::server( std::string const host, int port ) {
+	this->_events.resize(MAX_EVENTS); // reserve space for events
 	this->_serverSocket = socket(AF_INET, SOCK_STREAM, 0);
-	std::cout << "Server Socket created: " << this->_serverSocket << std::endl;
 
+	std::cout << "Server Socket created: " << this->_serverSocket << std::endl;
 	// specify the server address
 	sockaddr_in	serverAddress;
 	serverAddress.sin_family = AF_INET;
@@ -40,12 +42,31 @@ server::server( std::string const host, int port ) {
 	listen(_serverSocket, SOMAXCONN);
 	// making server socket operations (accept...) non-blocking.
 	fcntl(_serverSocket, F_SETFL, O_NONBLOCK);
+
+	// set up epoll for monitoring events on the server socket
+	this->_epoll_fd = epoll_create1(0);
+
+	struct epoll_event cnx_event;
+	cnx_event.events = EPOLLIN; // interested in read events / upcoming (connexions / data)
+	cnx_event.data.fd = this->_serverSocket; // the server socket fd
+
+	epoll_ctl(this->_epoll_fd, EPOLL_CTL_ADD, this->_serverSocket, &cnx_event);
+	
+	this->_opennedSockets.insert({"epoll instance", this->_epoll_fd});
+	this->_opennedSockets.insert({"listening socket", this->_serverSocket});
 }
 
 /**
  * server::~server
  */
-server::~server( void ) {};
+server::~server( void ) {
+	for (auto& socket : this->_opennedSockets) {
+		close(socket.second);
+		std::cout << "closed: " << socket.first << " fd: " << socket.second << std::endl;
+	}
+	this->_opennedSockets.clear();
+	std::cout << "Server destroyed." << std::endl;
+};
 
 /**
  * server::server_run - connexions / clients sockets management
@@ -54,6 +75,53 @@ server::~server( void ) {};
  */
 void server::server_run( void ) {
 	while (true) {
-		
+		std::cout << "Waiting for clients incoming connexions / Data..." << std::endl;
+
+		// this would block until an event occurs
+		int event_count = epoll_wait(this->_epoll_fd, this->_events.data(), MAX_EVENTS, -1);
+
+		// a loop to handle each ready event
+		for (int i = 0; i < event_count; i++) {
+			// turn to swtich statement.
+			// --CASE 1--: new client connexion
+			if (this->_events[i].data.fd == this->_serverSocket) {
+				int client_socket = accept(this->_serverSocket, nullptr, nullptr);
+				this->_opennedSockets.insert({"client socket", client_socket});
+
+				// non-blocking socket
+				fcntl(client_socket, F_SETFL, fcntl(client_socket, F_GETFL, 0) | O_NONBLOCK);
+				struct epoll_event clt_event;
+
+				clt_event.data.fd = client_socket;
+				clt_event.events = EPOLLIN | EPOLLET; // Watch for input, use Edge-Triggered
+				epoll_ctl(this->_epoll_fd, EPOLL_CTL_ADD, client_socket, &clt_event);
+				std::cout << "New connection on socket: " << client_socket << std::endl;
+			}
+			else {
+				// --CASE 2--: data from existing client
+				int client_socket = this->_events[i].data.fd;
+				char buffer[1024];
+
+				ssize_t bytes = read(client_socket, buffer, sizeof(buffer));
+				buffer[bytes] = '\0';
+				if (bytes <= 0) {
+					// Error or connection closed by the client
+					std::cout << "Closed Client socket: " << client_socket << std::endl;
+					epoll_ctl(this->_epoll_fd, EPOLL_CTL_DEL, client_socket, nullptr);
+					close(client_socket);
+				}
+				else {
+					// we got the data
+					std::cout << "------------- DATA ---------------" << std::endl;
+					std::cout << buffer;
+					std::cout << "------------- DATA ---------------" << std::endl;
+					// echo back to client.
+					write(client_socket, buffer, bytes);
+				}
+			}
+		}
+		/* for (auto &event : this->_events) {
+			std::cout << "evend fd: " << event.data.fd << std::endl;
+		} */
 	}
 }
