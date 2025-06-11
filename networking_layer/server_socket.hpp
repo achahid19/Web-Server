@@ -9,6 +9,8 @@
 #include <vector>
 #include <map>
 #include <unistd.h> // close() function
+// strlen
+#include <cstring> // strlen() function
 
 #define MAX_EVENTS 5 // max number of events to handle in epoll in one go
 

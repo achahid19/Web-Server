@@ -82,6 +82,8 @@ void server::server_run( void ) {
 
 		// a loop to handle each ready event
 		for (int i = 0; i < event_count; i++) {
+			// check socket where are serving the event
+			std::cout << "Event on socket: " << this->_events[i].data.fd << std::endl;
 			// turn to swtich statement.
 			// --CASE 1--: new client connexion
 			if (this->_events[i].data.fd == this->_serverSocket) {
@@ -100,10 +102,10 @@ void server::server_run( void ) {
 			else {
 				// --CASE 2--: data from existing client
 				int client_socket = this->_events[i].data.fd;
-				char buffer[1024];
+				char request_buffer[1024]; // request_buffer to hold incoming data
 
-				ssize_t bytes = read(client_socket, buffer, sizeof(buffer));
-				buffer[bytes] = '\0';
+				ssize_t bytes = recv(client_socket, request_buffer, sizeof(request_buffer) - 1, 0);
+				request_buffer[bytes] = '\0';
 				if (bytes <= 0) {
 					// Error or connection closed by the client
 					std::cout << "Closed Client socket: " << client_socket << std::endl;
@@ -113,10 +115,34 @@ void server::server_run( void ) {
 				else {
 					// we got the data
 					std::cout << "------------- DATA ---------------" << std::endl;
-					std::cout << buffer;
+					std::cout << request_buffer;
 					std::cout << "------------- DATA ---------------" << std::endl;
-					// echo back to client.
-					write(client_socket, buffer, bytes);
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					// example: echo server response
+					std::string response_body = "Body:" + std::string(request_buffer);
+					std::string content_length_str = std::to_string(response_body.length());
+
+					std::string http_response = "HTTP/1.1 200 OK\r\n"; // status line
+					// HTTP headers
+					http_response += "Content-Type: text/plain\r\n"; 
+					http_response += "Content-Length: " + content_length_str + "\r\n";
+					http_response += "\r\n"; // End of headers
+					http_response += response_body;
+
+					send(client_socket, http_response.c_str(), http_response.length(), 0);
 				}
 			}
 		}
