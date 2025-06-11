@@ -11,7 +11,6 @@
 #include <unistd.h> // close() function
 #include <cstring> // strlen() function
 #include <csignal> // signal handling
-#include <atomic> // is it allowed?
 
 
 #define MAX_EVENTS 5 // max number of events to handle in epoll in one go
@@ -19,8 +18,6 @@
 class server {
 private:
 	int	_serverSocket; // fd socket listenning for new client's connections
-	int	_clientSocker; // establishing fd socket for new client (keep-alive).
-	
 
 	// epoll attributes
 	int	_epoll_fd; // interest list, handle to epoll instance

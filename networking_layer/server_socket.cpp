@@ -98,6 +98,7 @@ void server::server_run( void ) {
 		// this would block until an event occurs
 		int event_count = epoll_wait(this->_epoll_fd, this->_events.data(), MAX_EVENTS, -1);
 
+		std::cout << "Ready to handle events: " << std::endl;
 		// a loop to handle each ready event
 		for (int i = 0; i < event_count; i++) {
 			std::cout << "Event on socket: " << this->_events[i].data.fd << std::endl;
@@ -116,42 +117,32 @@ void server::server_run( void ) {
 				epoll_ctl(this->_epoll_fd, EPOLL_CTL_ADD, client_socket, &clt_event);
 				std::cout << "New connection on socket: " << client_socket << std::endl;
 			}
+			// else is a client socket ready for reading data.
 			else {
 				// --CASE 2--: data from existing client
 				int client_socket = this->_events[i].data.fd;
 				char request_buffer[1024]; // request_buffer to hold incoming data
+				std::string request;
 
-				ssize_t bytes = recv(client_socket, request_buffer, sizeof(request_buffer) - 1, 0);
-				request_buffer[bytes] = '\0';
-				if (bytes <= 0) {
-					// Error or connection closed by the client
-					std::cout << "Closed Client socket: " << client_socket << std::endl;
-					epoll_ctl(this->_epoll_fd, EPOLL_CTL_DEL, client_socket, nullptr);
-					// must free the fd at this point but also should remove it from _opennedSockets
-					close(client_socket);
-					this->_opennedSockets.erase("client " + std::to_string(client_socket));
+				ssize_t bytes = 0;
+				ssize_t total_bytes = 0;
+				while (true) {
+					request_buffer[0] = '\0'; // clear the buffer
+					bytes = recv(client_socket, request_buffer, sizeof(request_buffer) - 1, 0);
+					if (request_buffer[0] == '\0') break; // means bytes == 0 or -1 (error).
+					request_buffer[bytes] = '\0'; // null-terminate the string
+					total_bytes += bytes;
+					std::cout << "Received bytes: " << bytes << std::endl;
+					request.append(request_buffer, bytes);
 				}
-				else {
-					// we got the data
+				if (total_bytes > 0) {
+					// we got the request, process it
 					std::cout << "------------- DATA ---------------" << std::endl;
-					std::cout << request_buffer;
+					std::cout << request;
 					std::cout << "------------- DATA ---------------" << std::endl;
-					
-					
-					
-					
-					
-					
-					
-					
-					
-					
-					
-					
-					
-					
+
 					// example: echo server response
-					std::string response_body = "Body:" + std::string(request_buffer);
+					std::string response_body = "Body:" + request + "\n";
 					std::string content_length_str = std::to_string(response_body.length());
 
 					std::string http_response = "HTTP/1.1 200 OK\r\n"; // status line
@@ -162,6 +153,13 @@ void server::server_run( void ) {
 					http_response += response_body;
 
 					send(client_socket, http_response.c_str(), http_response.length(), 0);
+				}
+				else if (total_bytes == 0) {
+					// no data received, close the client socket
+					std::cout << "closing client socket: " << client_socket << std::endl;
+					epoll_ctl(this->_epoll_fd, EPOLL_CTL_DEL, client_socket, nullptr);
+					close(client_socket);
+					this->_opennedSockets.erase("client " + std::to_string(client_socket));
 				}
 			}
 		}
