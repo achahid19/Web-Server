@@ -9,8 +9,10 @@
 #include <vector>
 #include <map>
 #include <unistd.h> // close() function
-// strlen
 #include <cstring> // strlen() function
+#include <csignal> // signal handling
+#include <atomic> // is it allowed?
+
 
 #define MAX_EVENTS 5 // max number of events to handle in epoll in one go
 
@@ -18,6 +20,7 @@ class server {
 private:
 	int	_serverSocket; // fd socket listenning for new client's connections
 	int	_clientSocker; // establishing fd socket for new client (keep-alive).
+	
 
 	// epoll attributes
 	int	_epoll_fd; // interest list, handle to epoll instance
@@ -26,6 +29,10 @@ private:
 
 	// openned socket's fd, TO FREE WITH DESTRUCTOR
 	std::map<std::string const, int> _opennedSockets;
+
+	// signal handler
+	static void signalHandler( int signal );
+	static int running; // flag to control server loop
 
 	// dont instantiate without param
 	// no copy

@@ -1,5 +1,7 @@
 #include "server_socket.hpp"
 
+int server::running = true; // flag to control server loop
+
 /**
  * TODO list
  * 
@@ -68,13 +70,29 @@ server::~server( void ) {
 	std::cout << "Server destroyed." << std::endl;
 };
 
+
+/**
+ * signalHandler - signal handler for SIGINT
+ * 
+ * @signal: the signal number (e.g., SIGINT)
+ * 
+ * Return: void.
+ */
+void server::signalHandler( int signal ) {
+	(void)signal;
+	running = false;
+}
+
 /**
  * server::server_run - connexions / clients sockets management
  * 
  * Return: void.
  */
 void server::server_run( void ) {
-	while (true) {
+	// Register the signal handler for SIGINT.
+	signal(SIGINT, signalHandler);
+
+	while (running) {
 		std::cout << "Waiting for clients incoming connexions / Data..." << std::endl;
 
 		// this would block until an event occurs
@@ -82,9 +100,8 @@ void server::server_run( void ) {
 
 		// a loop to handle each ready event
 		for (int i = 0; i < event_count; i++) {
-			// check socket where are serving the event
 			std::cout << "Event on socket: " << this->_events[i].data.fd << std::endl;
-			// turn to swtich statement.
+
 			// --CASE 1--: new client connexion
 			if (this->_events[i].data.fd == this->_serverSocket) {
 				int client_socket = accept(this->_serverSocket, nullptr, nullptr);
@@ -110,7 +127,6 @@ void server::server_run( void ) {
 					// Error or connection closed by the client
 					std::cout << "Closed Client socket: " << client_socket << std::endl;
 					epoll_ctl(this->_epoll_fd, EPOLL_CTL_DEL, client_socket, nullptr);
-					close(client_socket);
 				}
 				else {
 					// we got the data
