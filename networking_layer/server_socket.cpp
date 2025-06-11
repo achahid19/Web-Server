@@ -64,7 +64,7 @@ server::server( std::string const host, int port ) {
 server::~server( void ) {
 	for (auto& socket : this->_opennedSockets) {
 		close(socket.second);
-		std::cout << "closed: " << socket.first << " fd: " << socket.second << std::endl;
+		std::cout << "closed fd: " << socket.first << std::endl;
 	}
 	this->_opennedSockets.clear();
 	std::cout << "Server destroyed." << std::endl;
@@ -105,7 +105,7 @@ void server::server_run( void ) {
 			// --CASE 1--: new client connexion
 			if (this->_events[i].data.fd == this->_serverSocket) {
 				int client_socket = accept(this->_serverSocket, nullptr, nullptr);
-				this->_opennedSockets.insert({"client socket", client_socket});
+				this->_opennedSockets.insert({"client " + std::to_string(client_socket), client_socket});
 
 				// non-blocking socket
 				fcntl(client_socket, F_SETFL, fcntl(client_socket, F_GETFL, 0) | O_NONBLOCK);
@@ -127,6 +127,9 @@ void server::server_run( void ) {
 					// Error or connection closed by the client
 					std::cout << "Closed Client socket: " << client_socket << std::endl;
 					epoll_ctl(this->_epoll_fd, EPOLL_CTL_DEL, client_socket, nullptr);
+					// must free the fd at this point but also should remove it from _opennedSockets
+					close(client_socket);
+					this->_opennedSockets.erase("client " + std::to_string(client_socket));
 				}
 				else {
 					// we got the data
