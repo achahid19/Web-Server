@@ -21,7 +21,7 @@ private:
 
 	// epoll attributes
 	int	_epoll_fd; // interest list, handle to epoll instance
-	// what if we have more than max events? # TO CHECK
+	// what if we have more than max events? # TO CHECK # DONE
 	std::vector<struct epoll_event> _events; // events list
 
 	// openned socket's fd, TO FREE WITH DESTRUCTOR
@@ -30,6 +30,10 @@ private:
 	// signal handler
 	static void signalHandler( int signal );
 	static int running; // flag to control server loop
+
+	// helper functions to run the server
+	bool addClient( void );
+	void readRequest(std::string& request, int i, ssize_t* total_bytes);
 
 	// dont instantiate without param
 	// no copy

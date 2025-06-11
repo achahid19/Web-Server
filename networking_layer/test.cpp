@@ -1,4 +1,4 @@
-#include "server_socket.hpp"
+#include "server.hpp"
 
 int	main( void ) {
 	server	srv("127.0.0.1", 8080);

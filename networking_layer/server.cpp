@@ -1,4 +1,4 @@
-#include "server_socket.hpp"
+#include "server.hpp"
 
 int server::running = true; // flag to control server loop
 
@@ -70,7 +70,6 @@ server::~server( void ) {
 	std::cout << "Server destroyed." << std::endl;
 };
 
-
 /**
  * signalHandler - signal handler for SIGINT
  * 
@@ -105,36 +104,16 @@ void server::server_run( void ) {
 
 			// --CASE 1--: new client connexion
 			if (this->_events[i].data.fd == this->_serverSocket) {
-				int client_socket = accept(this->_serverSocket, nullptr, nullptr);
-				this->_opennedSockets.insert({"client " + std::to_string(client_socket), client_socket});
-
-				// non-blocking socket
-				fcntl(client_socket, F_SETFL, fcntl(client_socket, F_GETFL, 0) | O_NONBLOCK);
-				struct epoll_event clt_event;
-
-				clt_event.data.fd = client_socket;
-				clt_event.events = EPOLLIN | EPOLLET; // Watch for input, use Edge-Triggered
-				epoll_ctl(this->_epoll_fd, EPOLL_CTL_ADD, client_socket, &clt_event);
-				std::cout << "New connection on socket: " << client_socket << std::endl;
+				addClient(); // hadnle erros structure # TODO.
 			}
-			// else is a client socket ready for reading data.
 			else {
 				// --CASE 2--: data from existing client
-				int client_socket = this->_events[i].data.fd;
-				char request_buffer[1024]; // request_buffer to hold incoming data
 				std::string request;
-
-				ssize_t bytes = 0;
+				int client_socket = this->_events[i].data.fd; // get the client socket fd
 				ssize_t total_bytes = 0;
-				while (true) {
-					request_buffer[0] = '\0'; // clear the buffer
-					bytes = recv(client_socket, request_buffer, sizeof(request_buffer) - 1, 0);
-					if (request_buffer[0] == '\0') break; // means bytes == 0 or -1 (error).
-					request_buffer[bytes] = '\0'; // null-terminate the string
-					total_bytes += bytes;
-					std::cout << "Received bytes: " << bytes << std::endl;
-					request.append(request_buffer, bytes);
-				}
+
+				// read all the request in one go.
+				readRequest(request, i, &total_bytes);
 				if (total_bytes > 0) {
 					// we got the request, process it
 					std::cout << "------------- DATA ---------------" << std::endl;
@@ -166,5 +145,53 @@ void server::server_run( void ) {
 		/* for (auto &event : this->_events) {
 			std::cout << "evend fd: " << event.data.fd << std::endl;
 		} */
+	}
+}
+
+/**
+ * addClient - add a new client to the server's list of clients.
+ * 
+ * Return: boolean.
+ */
+bool server::addClient( void ) {
+	int client_socket = accept(this->_serverSocket, nullptr, nullptr);
+	this->_opennedSockets.insert({"client " + std::to_string(client_socket), client_socket});
+
+	// non-blocking socket
+	fcntl(client_socket, F_SETFL, fcntl(client_socket, F_GETFL, 0) | O_NONBLOCK);
+	struct epoll_event clt_event;
+
+	clt_event.data.fd = client_socket;
+	clt_event.events = EPOLLIN | EPOLLET; // Watch for input, use Edge-Triggered
+	epoll_ctl(this->_epoll_fd, EPOLL_CTL_ADD, client_socket, &clt_event);
+	std::cout << "New connection on socket: " << client_socket << std::endl;
+	return true;
+}
+
+/**
+ * processRequest - process the request from the client.
+ * 
+ * @request: reference to the request string to be filled.
+ * @i: index of the event in the events vector.
+ * @total_bytes: pointer to total bytes received.
+ * 
+ * Return: void.
+ */
+void server::readRequest(std::string& request, int i, ssize_t* total_bytes) {
+	int client_socket = this->_events[i].data.fd;
+	char request_buffer[1024]; // request_buffer to hold incoming data
+
+	ssize_t bytes = 0;
+	while (true) {
+		// what if client sends unlimited data? # TO CHECK
+		// set a max bytes to read peer request?
+	
+		request_buffer[0] = '\0';
+		bytes = recv(client_socket, request_buffer, sizeof(request_buffer) - 1, 0);
+		if (request_buffer[0] == '\0') break; // means bytes == 0 or -1 (error).
+		request_buffer[bytes] = '\0'; // null-terminate the string
+		*total_bytes += bytes;
+		std::cout << "Received bytes: " << bytes << std::endl;
+		request.append(request_buffer, bytes);
 	}
 }
