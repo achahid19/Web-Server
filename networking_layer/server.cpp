@@ -1,4 +1,5 @@
 #include "server.hpp"
+#include "../parsing_layer/request_parsing.hpp"
 
 int server::running = true; // flag to control server loop
 
@@ -115,9 +116,13 @@ void server::server_run( void ) {
 				// read all the request in one go.
 				readRequest(request, i, &total_bytes);
 				if (total_bytes > 0) {
+					// send request to parsing_layer
+					
+					request_parsing	req_parser(request);
+
 					// we got the request, process it
 					std::cout << "------------- DATA ---------------" << std::endl;
-					std::cout << request;
+					std::cout << req_parser.getRequest();
 					std::cout << "------------- DATA ---------------" << std::endl;
 
 					// example: echo server response
