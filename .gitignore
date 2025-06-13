@@ -5,6 +5,7 @@ webserv
 *.o
 *.obj
 a.out
+server
 
 # Dependency files
 *.d
