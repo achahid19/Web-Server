@@ -3,22 +3,24 @@ CC = c++
 
 CFLAGS = -std=c++98
 
-SRCS = main_test.cpp \
-	$(addprefix networking_layer/, server.cpp) \
-	   $(addprefix parsing_layer/, request_parsing.cpp) \
+SRCS =	main_test.cpp \
+		$(addprefix networking_layer/, server.cpp) \
+		$(addprefix parsing_layer/, request_parsing.cpp) \
+		$(addprefix utils/, utils.cpp)
 
-HEADERS = $(addprefix networking_layer/, server.hpp) \
-	   		$(addprefix parsing_layer/, request_parsing.hpp)
+HEADERS = headers/
 
 # Source files
 all: server
 
 server: $(SRCS) $(HEADERS)
-	$(CC) $(CFLAGS) -o server $(SRCS)
+	$(CC) $(CFLAGS) -I$(HEADERS) $(SRCS) -o server
 
 clean:
 	rm -f server
 
 fclean: clean
+
+re: fclean all
 
 .PHONY: all clean

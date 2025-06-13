@@ -1,4 +1,4 @@
-#include "networking_layer/server.hpp"
+#include  "server.hpp"
 
 int	main( void ) {
 	server	srv("127.0.0.1", 8080);
