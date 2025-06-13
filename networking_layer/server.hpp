@@ -14,6 +14,7 @@
 
 
 #define MAX_EVENTS 5 // max number of events to handle in epoll in one go
+#define REQ_BUF_SIZE 1024 // request buffer size, to hold incoming data
 
 class server {
 private:

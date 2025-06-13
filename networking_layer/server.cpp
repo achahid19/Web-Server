@@ -55,17 +55,21 @@ server::server( std::string const host, int port ) {
 
 	epoll_ctl(this->_epoll_fd, EPOLL_CTL_ADD, this->_serverSocket, &cnx_event);
 	
-	this->_opennedSockets.insert({"epoll instance", this->_epoll_fd});
-	this->_opennedSockets.insert({"listening socket", this->_serverSocket});
+	this->_opennedSockets.insert(std::make_pair("epoll instance", this->_epoll_fd));
+	this->_opennedSockets.insert(std::make_pair("listening socket", this->_serverSocket));
 }
 
 /**
  * server::~server
  */
 server::~server( void ) {
-	for (auto& socket : this->_opennedSockets) {
-		close(socket.second);
-		std::cout << "closed fd: " << socket.first << std::endl;
+	for (
+		std::map<std::string, int>::iterator it = this->_opennedSockets.begin();
+		it != this->_opennedSockets.end();
+		++it
+	) {
+		close(it->second);
+		std::cout << "closed fd: " << it->first << std::endl;
 	}
 	this->_opennedSockets.clear();
 	std::cout << "Server destroyed." << std::endl;
@@ -127,7 +131,7 @@ void server::server_run( void ) {
 
 					// example: echo server response
 					std::string response_body = "Body:" + request + "\n";
-					std::string content_length_str = std::to_string(response_body.length());
+					std::string content_length_str = ::ft_to_string(response_body.length());
 
 					std::string http_response = "HTTP/1.1 200 OK\r\n"; // status line
 					// HTTP headers
@@ -139,16 +143,16 @@ void server::server_run( void ) {
 					send(client_socket, http_response.c_str(), http_response.length(), 0);
 				}
 				else if (total_bytes == 0) {
-					// no data received, close the client socket
+					// no data received (client disconnected / error client-side), close the client socket
 					std::cout << "closing client socket: " << client_socket << std::endl;
-					epoll_ctl(this->_epoll_fd, EPOLL_CTL_DEL, client_socket, nullptr);
+					epoll_ctl(this->_epoll_fd, EPOLL_CTL_DEL, client_socket, NULL);
 					close(client_socket);
-					this->_opennedSockets.erase("client " + std::to_string(client_socket));
+					this->_opennedSockets.erase("client " + ::ft_to_string(client_socket));
 				}
 			}
 		}
-		/* for (auto &event : this->_events) {
-			std::cout << "evend fd: " << event.data.fd << std::endl;
+		/* for (size_t i = 0; i < this->_events.size(); i++) {
+			std::cout << "evend fd: " << this->_events[i].data.fd << std::endl;
 		} */
 	}
 }
@@ -159,8 +163,8 @@ void server::server_run( void ) {
  * Return: boolean.
  */
 bool server::addClient( void ) {
-	int client_socket = accept(this->_serverSocket, nullptr, nullptr);
-	this->_opennedSockets.insert({"client " + std::to_string(client_socket), client_socket});
+	int client_socket = accept(this->_serverSocket, NULL, NULL);
+	this->_opennedSockets.insert(std::make_pair("client " + ::ft_to_string(client_socket), client_socket));
 
 	// non-blocking socket
 	fcntl(client_socket, F_SETFL, fcntl(client_socket, F_GETFL, 0) | O_NONBLOCK);
@@ -184,7 +188,7 @@ bool server::addClient( void ) {
  */
 void server::readRequest(std::string& request, int i, ssize_t* total_bytes) {
 	int client_socket = this->_events[i].data.fd;
-	char request_buffer[1024]; // request_buffer to hold incoming data
+	char request_buffer[REQ_BUF_SIZE]; // request_buffer to hold incoming data
 
 	ssize_t bytes = 0;
 	while (true) {
