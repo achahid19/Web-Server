@@ -7,12 +7,16 @@ webserv
 a.out
 server
 
+
+
 # Dependency files
 *.d
 
 # Build directories
 build/
 bin/
+webserv/
+example.cpp
 
 # Configuration files (if they are generated or sensitive)
 # If your configuration files are meant to be versioned, remove these lines.

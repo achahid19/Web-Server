@@ -1,7 +1,7 @@
 #include  "server.hpp"
 
 int	main( void ) {
-	server	srv("127.0.0.1", 8080);
+	server	srv;
 
 	srv.server_run();
 	return 0;
