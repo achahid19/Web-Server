@@ -16,13 +16,9 @@ int server::running = true; // flag to control server loop
  */
 
 /**
- * server::server - constructor by parameter
- * creating a socket, binding it to an address and port, 
- * and then putting it in a listening state.
- * @host: ip address where we listening for upcoming connexions
- * @port: openned port for upcoming client's connexions
- * 
- * Return: void.
+ * server::server - constructor creating a listening sockets,
+ * binding them to an address and port, 
+ * and then putting them in a listening state.
  */
 server::server( void ) {
 	this->_events.resize(MAX_EVENTS); // reserve space for events
@@ -30,7 +26,6 @@ server::server( void ) {
 	this->_epoll_fd = epoll_create1(0);
 	this->_opennedFds.insert(std::make_pair("epoll instance", this->_epoll_fd));
 
-	// while a map of <host, int>, connect socket pass it to serverBind, listen then add
 	for (
 		std::map<std::string, int>::iterator it = this->_listening.begin();
 		it != this->_listening.end();
@@ -43,7 +38,6 @@ server::server( void ) {
 		this->_serverSockets.push_back(serverSocket);
 		::serverBind(it->first, it->second, serverSocket);
 		listen(serverSocket, SOMAXCONN);
-		// making server socket operations (accept...) non-blocking.
 		fcntl(serverSocket, F_SETFL, O_NONBLOCK);
 		this->_opennedFds.insert(std::make_pair(
 			"listening socket " + ::ft_to_string(serverSocket), serverSocket
