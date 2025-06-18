@@ -11,14 +11,15 @@ int server::running = true; // flag to control server loop
 /**
  * TODO list
  * 
- * - read the request in structured way,
- *   load structures( request_line, request_header, request_body )
  */
 
 /**
- * server::server - constructor creating a listening sockets,
+ * server::server - constructor
+ * 
+ * creating a listening sockets,
  * binding them to an address and port, 
  * and then putting them in a listening state.
+ * init the epoll mechanism to handle events.
  */
 server::server( void ) {
 	this->_events.resize(MAX_EVENTS); // reserve space for events
@@ -47,7 +48,9 @@ server::server( void ) {
 }
 
 /**
- * server::~server
+ * server::~server - deconstructor
+ * 
+ * Clean up server resources.
  */
 server::~server( void ) {
 	for (
@@ -71,19 +74,9 @@ server::~server( void ) {
 };
 
 /**
- * signalHandler - signal handler for SIGINT
- * 
- * @signal: the signal number (e.g., SIGINT)
- * 
- * Return: void.
- */
-void server::signalHandler( int signal ) {
-	(void)signal;
-	running = false;
-}
-
-/**
- * server::server_run - connexions / clients sockets management
+ * server::server_run - This server method
+ * run the server loop, waiting for events
+ * on the server sockets, then handling them.
  * 
  * Return: void.
  */
@@ -170,7 +163,9 @@ void server::server_run( void ) {
 }
 
 /**
- * addClient - add a new client to the server's list of clients.
+ * addClient - add a new client to the server.
+ * 
+ * @serverSocket: listening socket fd.
  * 
  * Return: boolean.
  */
@@ -183,9 +178,7 @@ bool server::addClient( int serverSocket ) {
 		"client " + ::ft_to_string(client_id), client_socket
 	));
 
-	// non-blocking socket
 	fcntl(client_socket, F_SETFL, fcntl(client_socket, F_GETFL, 0) | O_NONBLOCK);
-
 	// Watch for input, use Edge-Triggered MODE. (EPOLLET)
 	struct epoll_event clt_event = 
 		::addEpollEvent(this->_epoll_fd, client_socket, EPOLLIN | EPOLLET);
@@ -208,9 +201,8 @@ bool server::addClient( int serverSocket ) {
  * Return: void.
  */
 server::parsing_status	server::readRequest(client *client, int i, ssize_t* total_bytes) {
+	char request_buffer[REQ_BUF_SIZE + 1];
 	int client_socket = this->_events[i].data.fd;
-	char request_buffer[REQ_BUF_SIZE + 1]; // request_buffer to hold incoming data
-
 
 	ssize_t bytes = 0;
 	while (true) {
@@ -227,18 +219,19 @@ server::parsing_status	server::readRequest(client *client, int i, ssize_t* total
 		if (request_buffer[0] == '\0') {
 			break;
 		}
-		request_buffer[bytes] = '\0'; // null-terminate the string
+		request_buffer[bytes] = '\0';
 		*total_bytes += bytes;
-		// std::cout << "Received bytes: " << bytes << std::endl;
 		client->reqAppend(request_buffer, bytes);
 	}
-	INFO_LOGS && std::cout << std::endl;
 	return parsing_status::COMPLETED;
 }
 
 /**
- * isServerSocket - check if the passed socket
- * is for listening
+ * isServerSocket - check if the given socket is a server socket.
+ * 
+ * @socket: listening socket fd.
+ * 
+ * Return: boolean
  */
 bool server::isServerSocket( int socket ) {
 	for (
@@ -252,16 +245,37 @@ bool server::isServerSocket( int socket ) {
 	return false;
 }
 
+/**
+ * serverBind - bind the server socket to the specified host and port.
+ * 
+ * @host: the host address to bind to.
+ * @port: the port number to bind to.
+ * @serverSocket: listening socket fd.
+ * 
+ * Return: void.
+ */
 static inline void serverBind( std::string const &host, int port, int serverSocket ) {
-	// specify the server address
 	sockaddr_in	serverAddress;
 	serverAddress.sin_family = AF_INET;
 	serverAddress.sin_port = htons(port);
-	/* TODO. check why we used inet_addr for. */
 	serverAddress.sin_addr.s_addr = inet_addr(host.c_str());
 
-	// bind the socket to the server address and make it reusable
 	int non_blocking_flag = 1;
-	setsockopt(serverSocket, SOL_SOCKET, SO_REUSEADDR, &non_blocking_flag, sizeof(non_blocking_flag));
+	setsockopt(
+		serverSocket, SOL_SOCKET, SO_REUSEADDR,
+		&non_blocking_flag, sizeof(non_blocking_flag)
+	);
 	bind(serverSocket, (struct sockaddr*)&serverAddress, sizeof(serverAddress));
+}
+
+/**
+ * signalHandler - signal handler for SIGINT
+ * 
+ * @signal: the signal number (e.g., SIGINT)
+ * 
+ * Return: void.
+ */
+void server::signalHandler( int signal ) {
+	(void)signal;
+	running = false;
 }
