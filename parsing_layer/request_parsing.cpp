@@ -60,3 +60,11 @@ void request_parsing::parse(const std::string& request) {
 
 	this->_status = parsing_status::COMPLETED;
 }
+
+void	request_parsing::resetParser( void ) {
+	this->_body = false;
+	this->_status = parsing_status::NOT_STARTED;
+	this->_start_line.setHttpVersion("");
+	this->_start_line.setUri("");
+	this->_start_line.setMethod("");
+};

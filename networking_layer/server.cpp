@@ -163,8 +163,8 @@ void server::server_run( void ) {
 
 					send(client_socket, http_response.c_str(), http_response.length(), 0);
 					client->clearReq();
+					client->getRequestParser().resetParser();
 				}
-
 				// modify the event to listen for input again
 				struct epoll_event clt_event = this->_events_map[this->_events[i].data.fd];
 

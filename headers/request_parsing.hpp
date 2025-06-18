@@ -30,7 +30,8 @@ public:
 	request_parsing( void );
 
 	// methods
-	void parse(const std::string& request);
+	void	parse(const std::string& request);
+	void	resetParser( void );
 
 	// getters
 	std::string getRequest() const;
