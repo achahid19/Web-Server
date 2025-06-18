@@ -12,7 +12,15 @@
 #include <cstring> // strlen() function
 #include <csignal> // signal handling
 #include "client.hpp"
+#include "request_parsing.hpp"
 
+// logging flags
+enum LogFlags {
+	REQ_BUFFER_LOGS = false,
+	DEBUG_LOGS = false,
+	INFO_LOGS = true,
+	START_LINE_LOGS = true,
+};
 
 #define MAX_EVENTS 5 // max number of events to handle in epoll in one go
 #define REQ_BUF_SIZE 4096 // request buffer size, to hold incoming data
@@ -38,20 +46,6 @@ private:
 
 	// openned socket's fd, TO FREE WITH DESTRUCTOR
 	std::map<std::string const, int> _opennedFds;
-	
-	enum class parsing_status {
-		NOT_STARTED,
-		IN_PROGRESS,
-		COMPLETED,
-		ERROR
-	};
-
-	// logging flags
-	enum LogFlags {
-		REQ_BUFFER_LOGS = false,
-		DEBUG_LOGS = false,
-		INFO_LOGS = true,
-	};
 
 	// signal handler
 	static void signalHandler( int signal );
@@ -59,7 +53,7 @@ private:
 
 	// helper functions to run the server
 	bool 					addClient( int );
-	server::parsing_status	readRequest(client *client, int i, ssize_t* total_bytes);
+	parsing_status			readRequest(client *client, int i, ssize_t* total_bytes);
 	bool					isServerSocket( int socket );
 
 	// dont instantiate without param

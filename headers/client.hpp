@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include "request_parsing.hpp"
 
 /**
  * client - all data related to a connection goes here
@@ -13,6 +14,9 @@ private:
 	static int		_connections; // open connections count.
 	int				_id; // client id, unique for each connection.
 
+	// parser
+	request_parsing	_request_parser;
+	
 	// no copy, no instantiation without client socket.
 	client( void );
 	client( client &copy );
@@ -30,6 +34,7 @@ public:
 	int					getSock( void );
 	int					getNumConx( void );
 	int					getClientId( void );
+	request_parsing&	getRequestParser( void ) { return _request_parser; }
 
 	// setters
 	void				decrementNumConx() { _connections--; };

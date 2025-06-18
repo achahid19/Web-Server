@@ -5,7 +5,7 @@ CFLAGS = -std=c++11
 
 SRCS =	main_test.cpp \
 		$(addprefix networking_layer/, server.cpp client.cpp network_utils.cpp) \
-		$(addprefix parsing_layer/, request_parsing.cpp) \
+		$(addprefix parsing_layer/, request_parsing.cpp request_line.cpp) \
 		$(addprefix utils/, utils.cpp)
 
 HEADERS = headers/

@@ -108,7 +108,7 @@ void server::server_run( void ) {
 				client *client = this->_connections[client_socket];
 				ssize_t total_bytes = 0;
 
-				server::parsing_status r = readRequest(client, i, &total_bytes);
+				parsing_status r = readRequest(client, i, &total_bytes);
 				if (r == parsing_status::COMPLETED && total_bytes > 0) {
 					struct epoll_event clt_event = this->_events_map[this->_events[i].data.fd];
 
@@ -128,6 +128,13 @@ void server::server_run( void ) {
 					);
 					this->_connections.erase(client_socket);
 					client->decrementNumConx();
+				}
+				else if (r == parsing_status::IN_PROGRESS) {
+					struct epoll_event clt_event = this->_events_map[this->_events[i].data.fd];
+
+					::modEpollEvent(
+						this->_epoll_fd, client_socket, EPOLLIN | EPOLLET, &clt_event
+					);
 				}
 			}
 			else if (this->_events[i].events & (EPOLLOUT | EPOLLET)) {
@@ -207,7 +214,7 @@ bool server::addClient( int serverSocket ) {
  * 
  * Return: void.
  */
-server::parsing_status	server::readRequest(client *client, int i, ssize_t* total_bytes) {
+parsing_status	server::readRequest(client *client, int i, ssize_t* total_bytes) {
 	char request_buffer[REQ_BUF_SIZE + 1];
 	int client_socket = this->_events[i].data.fd;
 
@@ -229,7 +236,16 @@ server::parsing_status	server::readRequest(client *client, int i, ssize_t* total
 	*total_bytes += bytes;
 	client->reqAppend(request_buffer, bytes);
 
-	return parsing_status::COMPLETED;
+	client->getRequestParser().parse(client->getRequest());
+
+	// check startline in stdout
+	START_LINE_LOGS && std::cout << client->getRequestParser().getStartLine() << std::endl;
+
+	if (client->getRequestParser().getStatus() == parsing_status::COMPLETED) {
+		return parsing_status::COMPLETED;
+	}
+	
+	return parsing_status::IN_PROGRESS;
 }
 
 /**
