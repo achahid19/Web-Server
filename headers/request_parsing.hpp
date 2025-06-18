@@ -2,6 +2,8 @@
 
 #include <iostream>
 #include "request_line.hpp"
+#include <map>
+#include "http_headers.hpp"
 
 enum class parsing_status {
 		NOT_STARTED,
@@ -13,13 +15,18 @@ enum class parsing_status {
 		ERROR
 };
 
+class http_headers;
 class request_parsing;
 
 class request_parsing {
 private:
-	bool _body = false;
-	parsing_status _status = parsing_status::NOT_STARTED;
-	request_line _start_line;
+	// states
+	bool			_body = false;
+	parsing_status 	_status = parsing_status::NOT_STARTED;
+	
+	// request structure
+	request_line 	_start_line;
+	http_headers	_headers;
 	
 	// Private copy constructor and assignment operator to prevent copying
 	request_parsing(const request_parsing& copy);

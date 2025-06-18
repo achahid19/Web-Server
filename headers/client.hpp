@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include "request_parsing.hpp"
+#include "http_headers.hpp"
 
 /**
  * client - all data related to a connection goes here

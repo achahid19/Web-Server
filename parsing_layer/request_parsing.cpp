@@ -35,7 +35,9 @@ void request_parsing::parse(const std::string& request) {
 		if (headers_end == std::string::npos) {
 			return ;
 		}
-
+		// load headers map<string key, string value>
+		std::string headers = request.substr(headers_start, headers_end);
+		this->_headers.loadHeaders(headers);
 		if (
 			this->_start_line.getMethod() == "GET"
 			|| this->_start_line.getMethod() == "DELETE"
@@ -67,4 +69,5 @@ void	request_parsing::resetParser( void ) {
 	this->_start_line.setHttpVersion("");
 	this->_start_line.setUri("");
 	this->_start_line.setMethod("");
+	this->_headers.clearHeaders();
 };
