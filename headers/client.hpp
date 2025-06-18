@@ -9,8 +9,9 @@ class client {
 private:
 	std::string		_request;
 	int				_sock;
-	static int		_num_conx; // track number of all connections.
-	int				_id; // track the number of current client.
+	static int		_num_conx; // track id's count.
+	static int		_connections; // open connections count.
+	int				_id; // client id, unique for each connection.
 
 	// no copy, no instantiation without client socket.
 	client( void );
@@ -29,4 +30,7 @@ public:
 	int					getSock( void );
 	int					getNumConx( void );
 	int					getClientId( void );
+
+	// setters
+	void				decrementNumConx() { _connections--; };
 };

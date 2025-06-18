@@ -127,6 +127,7 @@ void server::server_run( void ) {
 						"client " + ::ft_to_string(client->getClientId())
 					);
 					this->_connections.erase(client_socket);
+					client->decrementNumConx();
 				}
 			}
 			else if (this->_events[i].events & (EPOLLOUT | EPOLLET)) {
@@ -191,7 +192,7 @@ bool server::addClient( int serverSocket ) {
 	this->_events_map.insert(std::make_pair(client_socket, clt_event));
 	INFO_LOGS && std::cout << "New connection on socket: " << \
 		client_socket << std::endl;
-	INFO_LOGS && std::cout << "Number of connection now: " << \
+	INFO_LOGS && std::cout << "Number of connections now: " << \
 		this->_connections[client_socket]->getNumConx() << std::endl;
 
 	return true;
@@ -211,24 +212,23 @@ server::parsing_status	server::readRequest(client *client, int i, ssize_t* total
 	int client_socket = this->_events[i].data.fd;
 
 	ssize_t bytes = 0;
-	while (true) {
-		// what if client sends unlimited data? # TO CHECK
-		// set a max bytes to read peer request?
-	
-		// in case in we need more data,
-		// send status machine to epoll_wait to wait for more data
-	
-		request_buffer[0] = '\0';
-		bytes = recv(client_socket, request_buffer, REQ_BUF_SIZE, 0);
-		REQ_BUFFER_LOGS && std::cout << static_cast<int>(request_buffer[0]) << ", ";
-		INFO_LOGS && std::cout << "Received bytes: " << bytes << std::endl;
-		if (request_buffer[0] == '\0') {
-			break;
-		}
-		request_buffer[bytes] = '\0';
-		*total_bytes += bytes;
-		client->reqAppend(request_buffer, bytes);
+
+	memset(request_buffer, 0, REQ_BUF_SIZE + 1);
+
+	// Read only buffer size bytes, read again in the next iteration
+	// parse the given data, and change state accordingly
+	// (states would be checked through the request_parsing class)
+
+	bytes = recv(client_socket, request_buffer, REQ_BUF_SIZE, 0);
+	if (bytes < 0) {
+		return parsing_status::ERROR;
 	}
+	request_buffer[bytes] = '\0';
+	REQ_BUFFER_LOGS && std::cout << static_cast<int>(request_buffer[0]) << ", ";
+	INFO_LOGS && std::cout << "Received bytes: " << bytes << std::endl;
+	*total_bytes += bytes;
+	client->reqAppend(request_buffer, bytes);
+
 	return parsing_status::COMPLETED;
 }
 

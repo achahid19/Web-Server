@@ -1,11 +1,13 @@
 #include "client.hpp"
 
 int	client::_num_conx = 0;
+int	client::_connections = 0;
 
 // constructor
 client::client( int sock ) {
 	this->_id = ++this->_num_conx;
 	sock = this->_sock;
+	this->_connections++;
 }
 
 client::~client( void ) {
@@ -31,7 +33,7 @@ int	client::getSock( void ) {
 }
 
 int	client::getNumConx( void ) {
-	return this->_num_conx;
+	return this->_connections;
 }
 
 int	client::getClientId( void ) {
