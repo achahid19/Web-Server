@@ -11,6 +11,7 @@ int server::running = true; // flag to control server loop
 /**
  * TODO list
  * 
+ * Implement a proper error handling mechanism.
  */
 
 /**
@@ -81,32 +82,35 @@ server::~server( void ) {
  * Return: void.
  */
 void server::server_run( void ) {
-	// Register the signal handler for SIGINT.
 	signal(SIGINT, signalHandler);
 
 	while (running) {
-		INFO_LOGS && std::cout << "Waiting for clients incoming connexions / Data..." << std::endl;
+		INFO_LOGS && std::cout << "Incoming connexions / Data..." << std::endl;
 
-		// this would block until an event occurs
-		int event_count = epoll_wait(this->_epoll_fd, this->_events.data(), MAX_EVENTS, -1);
+		int event_count = epoll_wait(
+			this->_epoll_fd, this->_events.data(), MAX_EVENTS, -1
+		);
 
 		INFO_LOGS && std::cout << "Ready to handle events: " << std::endl;
-		// a loop to handle each ready event
+		// Events loop
 		for (int i = 0; i < event_count; i++) {
-			INFO_LOGS && std::cout << "Event on socket: " << this->_events[i].data.fd << std::endl;
+			INFO_LOGS && std::cout << "Event on socket: " \
+			<< this->_events[i].data.fd << std::endl;
 
 			// --CASE 1--: new client connexion
 			if (this->isServerSocket(this->_events[i].data.fd)) {
-				addClient(this->_events[i].data.fd); // hadnle erros structure # TODO.
+				addClient(this->_events[i].data.fd);
 			}
-			else if (this->_events[i].events & EPOLLIN || this->_events[i].events & EPOLLET) {
-				INFO_LOGS && std::cout << "Client socket is readable." << std::endl;
+			else if (
+				this->_events[i].events & EPOLLIN
+				|| this->_events[i].events & EPOLLET
+			) {
 				// --CASE 2--: data from existing client
-				int client_socket = this->_events[i].data.fd; // get the client socket fd
+				INFO_LOGS && std::cout << "Client socket is readable." << std::endl;
+				int client_socket = this->_events[i].data.fd;
 				client *client = this->_connections[client_socket];
 				ssize_t total_bytes = 0;
 
-				// read all the request in one go.
 				server::parsing_status r = readRequest(client, i, &total_bytes);
 				if (r == parsing_status::COMPLETED && total_bytes > 0) {
 					struct epoll_event clt_event = this->_events_map[this->_events[i].data.fd];
@@ -114,42 +118,47 @@ void server::server_run( void ) {
 					::modEpollEvent(
 						this->_epoll_fd, client_socket, EPOLLOUT | EPOLLET, &clt_event
 					);
-					INFO_LOGS && std::cout << "done" << std::endl;
+					INFO_LOGS && std::cout << "Socket updated to writable." << std::endl;
 				}
 				else if (total_bytes == 0) {
-					// no data received (client disconnected / error client-side), close the client socket
-					INFO_LOGS && std::cout << "closing client socket: " << client_socket << std::endl;
+					// (client disconnected / error client-side)
+					INFO_LOGS && std::cout << "closing client socket: " \
+					<< client_socket << std::endl;
 					epoll_ctl(this->_epoll_fd, EPOLL_CTL_DEL, client_socket, NULL);
 					close(client_socket);
-					this->_opennedFds.erase("client " + ::ft_to_string(client->getClientId()));
+					this->_opennedFds.erase(
+						"client " + ::ft_to_string(client->getClientId())
+					);
 					this->_connections.erase(client_socket);
 				}
 			}
 			else if (this->_events[i].events & EPOLLOUT) {
-				INFO_LOGS && std::cout << "Client socket is writable." << std::endl;
 				// --CASE 3--: client socket is writable, send response
-				int client_socket = this->_events[i].data.fd; // get the client socket fd
+				INFO_LOGS && std::cout << "Client socket is writable." << std::endl;
+				int client_socket = this->_events[i].data.fd;
 				client *client = this->_connections[client_socket];
-				request_parsing	req_parser(client->getRequest());
 
-				// we got the request, process it
-				INFO_LOGS && std::cout << "------------- DATA ---------------" << std::endl;
-				INFO_LOGS && std::cout << req_parser.getRequest();
-				INFO_LOGS && std::cout << "------------- DATA ---------------" << std::endl;
+				// this is a generic example of processing the request
+				{
+					// we got the request, process it
+					INFO_LOGS && std::cout << "------------- DATA ---------------" << std::endl;
+					INFO_LOGS && std::cout << client->getRequest();
+					INFO_LOGS && std::cout << "------------- DATA ---------------" << std::endl;
 
-				// example: echo server response
-				std::string response_body = "Body:" + req_parser.getRequest() + "\n";
-				std::string content_length_str = ::ft_to_string(response_body.length());
+					// example: echo server response
+					std::string response_body = "Body:" + client->getRequest() + "\n";
+					std::string content_length_str = ::ft_to_string(response_body.length());
 
-				std::string http_response = "HTTP/1.1 200 OK\r\n"; // status line
-				// HTTP headers
-				http_response += "Content-Type: text/plain\r\n"; 
-				http_response += "Content-Length: " + content_length_str + "\r\n";
-				http_response += "\r\n"; // End of headers
-				http_response += response_body;
+					std::string http_response = "HTTP/1.1 200 OK\r\n"; // status line
+					// HTTP headers
+					http_response += "Content-Type: text/plain\r\n"; 
+					http_response += "Content-Length: " + content_length_str + "\r\n";
+					http_response += "\r\n"; // End of headers
+					http_response += response_body;
 
-				send(client_socket, http_response.c_str(), http_response.length(), 0);
-				client->clearReq();
+					send(client_socket, http_response.c_str(), http_response.length(), 0);
+					client->clearReq();
+				}
 
 				// modify the event to listen for input again
 				struct epoll_event clt_event = this->_events_map[this->_events[i].data.fd];
