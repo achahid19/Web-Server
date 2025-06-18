@@ -101,10 +101,7 @@ void server::server_run( void ) {
 			if (this->isServerSocket(this->_events[i].data.fd)) {
 				addClient(this->_events[i].data.fd);
 			}
-			else if (
-				this->_events[i].events & EPOLLIN
-				|| this->_events[i].events & EPOLLET
-			) {
+			else if (this->_events[i].events & (EPOLLIN | EPOLLET)) {
 				// --CASE 2--: data from existing client
 				INFO_LOGS && std::cout << "Client socket is readable." << std::endl;
 				int client_socket = this->_events[i].data.fd;
@@ -132,7 +129,7 @@ void server::server_run( void ) {
 					this->_connections.erase(client_socket);
 				}
 			}
-			else if (this->_events[i].events & EPOLLOUT) {
+			else if (this->_events[i].events & (EPOLLOUT | EPOLLET)) {
 				// --CASE 3--: client socket is writable, send response
 				INFO_LOGS && std::cout << "Client socket is writable." << std::endl;
 				int client_socket = this->_events[i].data.fd;
