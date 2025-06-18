@@ -14,4 +14,10 @@ public:
 	// Methods
 	void	clearHeaders( void );
 	void	loadHeaders( std::string const &headers );
+
+	// getters
+	const std::map<std::string, std::string>& getHeaders() const;
 };
+
+std::ostream& operator<<(std::ostream& os, std::map<std::string, std::string> const &headers);
+

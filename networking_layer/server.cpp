@@ -238,10 +238,11 @@ parsing_status	server::readRequest(client *client, int i, ssize_t* total_bytes) 
 
 	client->getRequestParser().parse(client->getRequest());
 
-	// check startline in stdout
-	START_LINE_LOGS && std::cout << client->getRequestParser().getStartLine() << std::endl;
-
 	if (client->getRequestParser().getStatus() == parsing_status::COMPLETED) {
+		START_LINE_LOGS && std::cout << client->getRequestParser().getStartLine() \
+			<< std::endl;
+		HEADERS_LOGS && std::cout << client->getRequestParser().getHeadersMap().getHeaders() \
+			<< std::endl;
 		return parsing_status::COMPLETED;
 	}
 	

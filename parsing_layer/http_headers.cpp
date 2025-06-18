@@ -28,10 +28,22 @@ void	http_headers::loadHeaders( std::string const& headers ) {
 			this->_headers[key] = value;
 		}
 	}
-	if (HEADERS_LOGS)
-	{
-		for (auto const& header : this->_headers) {
-			std::cout << header.first << ":" << header.second << std::endl;
-		}
+	// if (HEADERS_LOGS)
+	// {
+	// 	for (auto const& header : this->_headers) {
+	// 		std::cout << header.first << ":" << header.second << std::endl;
+	// 	}
+	// }
+}
+
+// getters
+const std::map<std::string, std::string>& http_headers::getHeaders() const {
+	return this->_headers;
+}
+
+std::ostream& operator<<(std::ostream& os, std::map<std::string, std::string> const &headers) {
+	for (const auto& header : headers) {
+		os << header.first << ":" << header.second << "\r\n";
 	}
+	return os;
 }

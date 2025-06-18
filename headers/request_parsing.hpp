@@ -21,8 +21,8 @@ class request_parsing;
 class request_parsing {
 private:
 	// states
-	bool			_body = false;
-	parsing_status 	_status = parsing_status::NOT_STARTED;
+	bool			_body;
+	parsing_status 	_status;
 	
 	// request structure
 	request_line 	_start_line;
@@ -41,7 +41,7 @@ public:
 	void	resetParser( void );
 
 	// getters
-	std::string getRequest() const;
-	parsing_status getStatus() const { return _status; };
-	request_line const& getStartLine() const { return _start_line; };
+	parsing_status		getStatus() const;
+	request_line const& getStartLine() const;
+	http_headers const& getHeadersMap() const;
 };

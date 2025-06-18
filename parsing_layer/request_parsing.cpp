@@ -2,7 +2,10 @@
 #include "utils.hpp"
 
 // constructor
-request_parsing::request_parsing(void) {};
+request_parsing::request_parsing(void) {
+	this->_status = parsing_status::NOT_STARTED;
+	this->_body = false;
+};
 
 // methods
 void request_parsing::parse(const std::string& request) {
@@ -71,3 +74,16 @@ void	request_parsing::resetParser( void ) {
 	this->_start_line.setMethod("");
 	this->_headers.clearHeaders();
 };
+
+// getters
+parsing_status request_parsing::getStatus() const {
+	return this->_status;
+}
+
+request_line const& request_parsing::getStartLine() const {
+	return this->_start_line;
+}
+
+http_headers const& request_parsing::getHeadersMap() const {
+	return this->_headers;
+}
