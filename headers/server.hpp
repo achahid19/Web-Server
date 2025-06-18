@@ -14,14 +14,6 @@
 #include "client.hpp"
 #include "request_parsing.hpp"
 
-// logging flags
-enum LogFlags {
-	REQ_BUFFER_LOGS = false,
-	DEBUG_LOGS = false,
-	INFO_LOGS = true,
-	START_LINE_LOGS = true,
-};
-
 #define MAX_EVENTS 5 // max number of events to handle in epoll in one go
 #define REQ_BUF_SIZE 4096 // request buffer size, to hold incoming data
 

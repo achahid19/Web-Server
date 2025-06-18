@@ -4,9 +4,9 @@
 
 class request_line {
 private:
-	std::string _method; // e.g., GET, POST, PUT, DELETE
- 	std::string _uri; // e.g., /index.html
- 	std::string _http_version; // e.g., HTTP/1.1
+	std::string _method;
+ 	std::string _uri;
+ 	std::string _http_version;
 
 public:
  	request_line( void );

@@ -228,7 +228,7 @@ parsing_status	server::readRequest(client *client, int i, ssize_t* total_bytes) 
 
 	bytes = recv(client_socket, request_buffer, REQ_BUF_SIZE, 0);
 	if (bytes < 0) {
-		return parsing_status::ERROR;
+		return parsing_status::ERROR; // TO CHANGE LATER FOR APPROPRIATE HANDLING.
 	}
 	request_buffer[bytes] = '\0';
 	REQ_BUFFER_LOGS && std::cout << static_cast<int>(request_buffer[0]) << ", ";

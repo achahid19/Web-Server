@@ -17,7 +17,7 @@ class request_parsing;
 
 class request_parsing {
 private:
-	bool body = false;
+	bool _body = false;
 	parsing_status _status = parsing_status::NOT_STARTED;
 	request_line _start_line;
 	
