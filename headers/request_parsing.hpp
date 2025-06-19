@@ -33,7 +33,7 @@ private:
 	request_parsing& operator=(const request_parsing& copy);
 	
 public:
-	// Constructor by parameter
+	// Constructor
 	request_parsing( void );
 
 	// methods
@@ -42,6 +42,6 @@ public:
 
 	// getters
 	parsing_status		getStatus() const;
-	request_line const& getStartLine() const;
+	request_line const& getRequestLine() const;
 	http_headers const& getHeadersMap() const;
 };

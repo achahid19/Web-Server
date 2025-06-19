@@ -22,7 +22,7 @@ class client;
 class server {
 private:
 	std::vector< int >			_serverSockets; // fd socket listenning for new client's connections
-	std::map< int, client* >	_connections; // need to free the allocated mem
+	std::map< int, client* >	_connections;
 
 	// for testing, need to read config for this purpose
 	std::map< std::string, int > _listening = {

@@ -4,15 +4,15 @@
 
 class request_line {
 private:
-	std::string _method;
- 	std::string _uri;
- 	std::string _http_version;
+	std::string	_method;
+ 	std::string	_uri;
+ 	std::string	_http_version;
 
 public:
- 	request_line( void );
+	request_line( void );
 
 	// Methods
-	void loadStartLine(const std::string& start_line);
+	void loadRequestLine(const std::string& start_line);
 
 	// setters
 	void setMethod(const std::string& method);

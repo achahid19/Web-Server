@@ -4,7 +4,7 @@
 request_line::request_line(void) {};
 
 // methods
-void request_line::loadStartLine(const std::string& start_line) {
+void request_line::loadRequestLine(const std::string& start_line) {
 	size_t method_end = start_line.find(' ');
 	if (method_end == std::string::npos) {
 		// throw std::invalid_argument("Invalid request line: missing method");

@@ -28,7 +28,7 @@ void request_parsing::parse(const std::string& request) {
 		}
 
 		std::string start_line = request.substr(0, pos);
-		_start_line.loadStartLine(start_line);
+		_start_line.loadRequestLine(start_line);
 		this->_status = parsing_status::HEADERS;
 	}
 
@@ -80,7 +80,7 @@ parsing_status request_parsing::getStatus() const {
 	return this->_status;
 }
 
-request_line const& request_parsing::getStartLine() const {
+request_line const& request_parsing::getRequestLine() const {
 	return this->_start_line;
 }
 
