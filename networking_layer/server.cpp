@@ -67,7 +67,7 @@ server::~server( void ) {
 		it != this->_connections.end();
 		++it
 	) {
-		free(it->second);
+		delete it->second;
 	}
 	this->_opennedFds.clear();
 	this->_connections.clear();
