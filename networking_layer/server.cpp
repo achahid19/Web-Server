@@ -148,7 +148,7 @@ void server::server_run( void ) {
 
 				// this is a generic example of processing the request
 				{
-					/*
+					/* 
 						// we got the request, process it
 						INFO_LOGS && std::cout << "------------- DATA ---------------" << std::endl;
 						INFO_LOGS && std::cout << client->getRequest();
@@ -165,7 +165,7 @@ void server::server_run( void ) {
 						http_response += "\r\n"; // End of headers
 						http_response += response_body; 
 						send(client_socket, http_response.c_str(), http_response.length(), 0);
-					*/
+					 */
 					
 					/* RESPONSE HANDLER GOES HERE */
 					
@@ -246,9 +246,11 @@ parsing_status	server::readRequest(client *client, int i, ssize_t* total_bytes) 
 	client->getRequestParser().parse(client->getRequest());
 
 	if (client->getRequestParser().getStatus() == parsing_status::COMPLETED) {
-		START_LINE_LOGS && std::cout << client->getRequestParser().getRequestLine() \
+		REQUEST_LOGS && std::cout << client->getRequestParser().getRequestLine() \
 			<< std::endl;
-		HEADERS_LOGS && std::cout << client->getRequestParser().getHeadersMap().getHeaders() \
+		REQUEST_LOGS && std::cout << client->getRequestParser().getHeadersMap().getHeaders() \
+			<< std::endl;
+		REQUEST_LOGS && std::cout << client->getRequestParser().getBodyContent() \
 			<< std::endl;
 		return parsing_status::COMPLETED;
 	}

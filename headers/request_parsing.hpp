@@ -27,6 +27,7 @@ private:
 	// request structure
 	request_line 	_start_line;
 	http_headers	_headers;
+	std::string		_bodyContent;
 	
 	// Private copy constructor and assignment operator to prevent copying
 	request_parsing(const request_parsing& copy);
@@ -44,4 +45,5 @@ public:
 	parsing_status		getStatus() const;
 	request_line const& getRequestLine() const;
 	http_headers const& getHeadersMap() const;
+	std::string const&	getBodyContent() const;
 };

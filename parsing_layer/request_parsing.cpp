@@ -48,7 +48,7 @@ void request_parsing::parse(const std::string& request) {
 			return (this->_status = parsing_status::COMPLETED, void());
 		}
 		
-		else {
+		else if (this->_start_line.getMethod() == "POST") {
 			INFO_LOGS && std::cout << "Expecting a body" << std::endl;
 			this->_body = true;
 			this->_status = parsing_status::BODY;
@@ -61,6 +61,7 @@ void request_parsing::parse(const std::string& request) {
 		if (body_end == std::string::npos) {
 			return ;
 		}
+		this->_bodyContent = request.substr(body_start, body_end);
 	}
 
 	this->_status = parsing_status::COMPLETED;
@@ -86,4 +87,8 @@ request_line const& request_parsing::getRequestLine() const {
 
 http_headers const& request_parsing::getHeadersMap() const {
 	return this->_headers;
+}
+
+std::string const&	request_parsing::getBodyContent() const {
+	return this->_bodyContent;
 }

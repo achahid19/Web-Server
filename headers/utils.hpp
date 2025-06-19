@@ -13,8 +13,7 @@ enum LogFlags {
 	REQ_BUFFER_LOGS = false,
 	DEBUG_LOGS = false,
 	INFO_LOGS = true,
-	START_LINE_LOGS = false,
-	HEADERS_LOGS = false,
+	REQUEST_LOGS = false,
 };
 
 // turn an int to a string in a c++98 compliant way
