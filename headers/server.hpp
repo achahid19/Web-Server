@@ -13,22 +13,15 @@
 #include <csignal> // signal handling
 #include "client.hpp"
 #include "request_parsing.hpp"
+#include <exception> // for exception handling
 
 #define MAX_EVENTS 5 // max number of events to handle in epoll in one go
 #define REQ_BUF_SIZE 4096 // request buffer size, to hold incoming data
-
-enum class server_status {
-	NOT_STARTED,
-	RUNNING,
-	STOPPED,
-	ERROR
-};
 
 class client;
 
 class server {
 private:
-	server_status				_status; // server status
 	std::vector< int >			_serverSockets; // fd socket listenning for new client's connections
 	std::map< int, client* >	_connections;
 
@@ -67,6 +60,12 @@ public:
 
 	void	server_run( void );
 
-	// getters
-	server_status	getStatus( void ) const { return this->_status; }
+	// exception handling
+	class server_error : public std::exception {
+		private:
+			const std::string _msg;
+		public:
+			server_error( const std::string &msg );
+			virtual const char* what() const throw();
+	};
 };

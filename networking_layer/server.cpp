@@ -4,14 +4,14 @@
 #include "client.hpp"
 #include "network_utils.hpp"
 
-static inline bool serverBind( std::string const &host, int port, int serverSocket );
+static inline void serverBind( std::string const &host, int port, int serverSocket );
 static inline void serverError( std::string const &error, bool errno_ = true ) {
 	std::cerr << error;
 	if (errno_) std::cerr << strerror(errno);
 	std::cerr << std::endl;
 }
 
-int server::running = true; // flag to control server loop
+int server::running = true; // flag to control server event's loop
 
 /**
  * TODO list
@@ -31,13 +31,11 @@ int server::running = true; // flag to control server loop
  * init the epoll mechanism to handle events.
  */
 server::server( void ) {
-	this->_status = server_status::NOT_STARTED;
 	this->_events.resize(MAX_EVENTS); // reserve space for events
 
 	this->_epoll_fd = epoll_create1(0);
 	if (this->_epoll_fd < 0) {
-		::serverError("Error creating epoll instance: ");
-		this->_status = server_status::ERROR; return ;
+		throw server_error("Error creating epoll instance");
 	}
 	this->_opennedFds.insert(std::make_pair("epoll instance", this->_epoll_fd));
 	for (
@@ -47,34 +45,28 @@ server::server( void ) {
 	) {
 		int serverSocket = socket(AF_INET, SOCK_STREAM, 0);
 		if (serverSocket < 0) {
-			::serverError("Error creating socket: ");
-			this->_status = server_status::ERROR; return ;
+			throw server_error("Error creating socket: " + it->first);
 		}
 		INFO_LOGS && std::cout << "Server Socket created: " << serverSocket;
 		INFO_LOGS && std::cout << std::endl;
 		this->_serverSockets.push_back(serverSocket);
-		if (::serverBind(it->first, it->second, serverSocket) == false) {
-			this->_status = server_status::ERROR; return ;
-		}
+		::serverBind(it->first, it->second, serverSocket);
 		if (listen(serverSocket, SOMAXCONN) < 0) {
-			::serverError("Error listening on socket: " + it->first + ": ");
-			this->_status = server_status::ERROR; return ;
+			throw server_error("Error listening on socket: " + it->first);
 		}
 		if (fcntl(serverSocket, F_SETFL, O_NONBLOCK) < 0) {
-			::serverError("Error setting socket to non-blocking: ");
-			this->_status = server_status::ERROR; return ;
+			throw server_error("Error setting socket to non-blocking: " + it->first);
 		}
 		this->_opennedFds.insert(std::make_pair(
 			"listening socket " + ::ft_to_string(serverSocket), serverSocket
 		));
 		bool error = false;
 		::addEpollEvent(this->_epoll_fd, serverSocket, EPOLLIN, &error);
+		error = false;
 		if (error) {
-			::serverError("Error adding socket to epoll: " + it->first + ": ");
-			this->_status = server_status::ERROR; return ;
+			throw server_error("Error adding socket to epoll: " + it->first);
 		}
 	}
-	this->_status = server_status::RUNNING;
 }
 
 /**
@@ -111,11 +103,6 @@ server::~server( void ) {
  * Return: void.
  */
 void server::server_run( void ) {
-	if (this->_status == server_status::ERROR) {
-		::serverError("Server is in error state, cannot run.", false);
-		return ;
-	}
-
 	signal(SIGINT, signalHandler);
 
 	while (running) {
@@ -154,12 +141,13 @@ void server::server_run( void ) {
 				else if (total_bytes == 0) {
 					// (client disconnected / error client-side)
 					INFO_LOGS && std::cout << "closing client socket: " \
-					<< client_socket << std::endl;
+						<< client_socket << std::endl;
 					epoll_ctl(this->_epoll_fd, EPOLL_CTL_DEL, client_socket, NULL);
 					close(client_socket);
 					this->_opennedFds.erase(
 						"client " + ::ft_to_string(client->getClientId())
 					);
+					delete this->_connections[client_socket];
 					this->_connections.erase(client_socket);
 					client->decrementNumConx();
 				}
@@ -317,7 +305,7 @@ bool server::isServerSocket( int socket ) {
  * 
  * Return: bool.
  */
-static inline bool serverBind( std::string const &host, int port, int serverSocket ) {
+static inline void serverBind( std::string const &host, int port, int serverSocket ) {
 	sockaddr_in	serverAddress;
 	serverAddress.sin_family = AF_INET;
 	serverAddress.sin_port = htons(port);
@@ -330,14 +318,13 @@ static inline bool serverBind( std::string const &host, int port, int serverSock
 			&non_blocking_flag, sizeof(non_blocking_flag)
 		) < 0
 	) {
-		::serverError("Error setting socket options: ");
-		return false;
+		throw server::server_error("Error setting socket options for " + host);
 	}
 	if (bind(serverSocket, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) < 0) {
-		::serverError("Error binding socket to " + host + ":" + ::ft_to_string(port) + ": ");
-		return false;
+		throw server::server_error(
+			"Error binding socket to " + host + ":" + ::ft_to_string(port)
+		);
 	}
-	return true;
 }
 
 /**
@@ -350,4 +337,11 @@ static inline bool serverBind( std::string const &host, int port, int serverSock
 void server::signalHandler( int signal ) {
 	(void)signal;
 	running = false;
+}
+
+// exception handling
+server::server_error::server_error( const std::string &msg ) : _msg(msg) {};
+
+const char* server::server_error::what() const throw() {
+	return _msg.c_str();
 }
