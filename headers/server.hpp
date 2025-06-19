@@ -45,7 +45,7 @@ private:
 	static int running; // flag to control server loop
 
 	// helper functions to run the server
-	bool 					addClient( int );
+	void 					addClient( int );
 	parsing_status			readRequest(client *client, int i, ssize_t* total_bytes);
 	bool					isServerSocket( int socket );
 
@@ -67,5 +67,12 @@ public:
 		public:
 			server_error( const std::string &msg );
 			virtual const char* what() const throw();
+	};
+	class client_connection_error : public std::exception {
+		private:
+			const std::string _msg;
+		public:
+			client_connection_error( const std::string &msg ) : _msg(msg) {};
+			virtual const char* what() const throw() { return _msg.c_str(); };
 	};
 };

@@ -40,7 +40,7 @@ server::server( void ) {
 	) {
 		int serverSocket = socket(AF_INET, SOCK_STREAM, 0);
 		if (serverSocket < 0) {
-			throw server_error("Error creating socket: " + it->first);
+			throw server_error("Error creating listening socket: " + it->first);
 		}
 		INFO_LOGS && std::cout << "Server Socket created: " << serverSocket;
 		INFO_LOGS && std::cout << std::endl;
@@ -106,6 +106,15 @@ void server::server_run( void ) {
 		int event_count = epoll_wait(
 			this->_epoll_fd, this->_events.data(), MAX_EVENTS, -1
 		);
+	
+		if (event_count < 0) {
+			if (errno == EINTR) {
+				INFO_LOGS && std::cout << "Epoll wait interrupted by signal." << std::endl;
+				continue ;
+			}
+			std::cerr << "Error in epoll_wait: " << strerror(errno) << std::endl;
+			continue ;
+		}
 
 		INFO_LOGS && std::cout << "Ready to handle events: " << std::endl;
 		// Events loop
@@ -115,7 +124,13 @@ void server::server_run( void ) {
 
 			// --CASE 1--: new client connexion
 			if (this->isServerSocket(this->_events[i].data.fd)) {
-				addClient(this->_events[i].data.fd);
+				try {
+					addClient(this->_events[i].data.fd);
+				}
+				catch (const client_connection_error &e) {
+					std::cerr << e.what() << std::endl;
+					continue;
+				}
 			}
 			else if (this->_events[i].events & (EPOLLIN | EPOLLET)) {
 				// --CASE 2--: data from existing client
@@ -204,26 +219,37 @@ void server::server_run( void ) {
  * 
  * Return: boolean.
  */
-bool server::addClient( int serverSocket ) {
+void server::addClient( int serverSocket ) {
 	int client_socket = accept(serverSocket, NULL, NULL);
 
+	if (client_socket < 0) {
+		throw client_connection_error(
+			"Error accepting new client connection on socket: " \
+			+ ::ft_to_string(serverSocket)
+		);
+	}
+	fcntl(client_socket, F_SETFL, fcntl(client_socket, F_GETFL, 0) | O_NONBLOCK);
+	// Watch for input, use Edge-Triggered MODE. (EPOLLET)
+	bool error = false;
+	struct epoll_event clt_event = ::addEpollEvent(
+		this->_epoll_fd, client_socket, EPOLLIN | EPOLLET, &error
+	);
+	if (error) {
+		close(client_socket);
+		throw client_connection_error(
+			"Error adding client socket to epoll: " + ::ft_to_string(client_socket)
+		);
+	}
 	this->_connections.insert(std::make_pair(client_socket, new client(client_socket)));
 	int client_id = this->_connections[client_socket]->getClientId();
 	this->_opennedFds.insert(std::make_pair(
 		"client " + ::ft_to_string(client_id), client_socket
 	));
-
-	fcntl(client_socket, F_SETFL, fcntl(client_socket, F_GETFL, 0) | O_NONBLOCK);
-	// Watch for input, use Edge-Triggered MODE. (EPOLLET)
-	struct epoll_event clt_event = 
-		::addEpollEvent(this->_epoll_fd, client_socket, EPOLLIN | EPOLLET, NULL);
 	this->_events_map.insert(std::make_pair(client_socket, clt_event));
 	INFO_LOGS && std::cout << "New connection on socket: " << \
 		client_socket << std::endl;
 	INFO_LOGS && std::cout << "Number of connections now: " << \
 		this->_connections[client_socket]->getNumConx() << std::endl;
-
-	return true;
 }
 
 /**
