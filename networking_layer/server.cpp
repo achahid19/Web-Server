@@ -5,8 +5,10 @@
 #include "network_utils.hpp"
 
 static inline bool serverBind( std::string const &host, int port, int serverSocket );
-static inline void serverError( std::string const &error ) {
-	std::cerr << error << strerror(errno) << std::endl;
+static inline void serverError( std::string const &error, bool errno_ = true ) {
+	std::cerr << error;
+	if (errno_) std::cerr << strerror(errno);
+	std::cerr << std::endl;
 }
 
 int server::running = true; // flag to control server loop
@@ -72,6 +74,7 @@ server::server( void ) {
 			this->_status = server_status::ERROR; return ;
 		}
 	}
+	this->_status = server_status::RUNNING;
 }
 
 /**
@@ -108,6 +111,11 @@ server::~server( void ) {
  * Return: void.
  */
 void server::server_run( void ) {
+	if (this->_status == server_status::ERROR) {
+		::serverError("Server is in error state, cannot run.", false);
+		return ;
+	}
+
 	signal(SIGINT, signalHandler);
 
 	while (running) {
