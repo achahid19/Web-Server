@@ -11,7 +11,10 @@ int server::running = true; // flag to control server loop
 /**
  * TODO list
  * 
+ * methods handling
  * Implement a proper error handling mechanism.
+ * c++98 compliance
+ * config file
  */
 
 /**
@@ -145,23 +148,27 @@ void server::server_run( void ) {
 
 				// this is a generic example of processing the request
 				{
-					// we got the request, process it
-					INFO_LOGS && std::cout << "------------- DATA ---------------" << std::endl;
-					INFO_LOGS && std::cout << client->getRequest();
-					INFO_LOGS && std::cout << "------------- DATA ---------------" << std::endl;
+					/*
+						// we got the request, process it
+						INFO_LOGS && std::cout << "------------- DATA ---------------" << std::endl;
+						INFO_LOGS && std::cout << client->getRequest();
+						INFO_LOGS && std::cout << "------------- DATA ---------------" << std::endl;
 
-					// example: echo server response
-					std::string response_body = "Body:" + client->getRequest() + "\n";
-					std::string content_length_str = ::ft_to_string(response_body.length());
+						// example: echo server response
+						std::string response_body = "Body:" + client->getRequest() + "\n";
+						std::string content_length_str = ::ft_to_string(response_body.length());
 
-					std::string http_response = "HTTP/1.1 200 OK\r\n"; // status line
-					// HTTP headers
-					http_response += "Content-Type: text/plain\r\n"; 
-					http_response += "Content-Length: " + content_length_str + "\r\n";
-					http_response += "\r\n"; // End of headers
-					http_response += response_body;
-
-					send(client_socket, http_response.c_str(), http_response.length(), 0);
+						std::string http_response = "HTTP/1.1 200 OK\r\n"; // status line
+						// HTTP headers
+						http_response += "Content-Type: text/plain\r\n"; 
+						http_response += "Content-Length: " + content_length_str + "\r\n";
+						http_response += "\r\n"; // End of headers
+						http_response += response_body; 
+						send(client_socket, http_response.c_str(), http_response.length(), 0);
+					*/
+					
+					/* RESPONSE HANDLER GOES HERE */
+					
 					client->clearReq();
 					client->getRequestParser().resetParser();
 				}
