@@ -12,7 +12,7 @@ enum class parsing_status {
 		BODY,
 		IN_PROGRESS,
 		COMPLETED,
-		ERROR
+		READING_ERROR
 };
 
 class http_headers;

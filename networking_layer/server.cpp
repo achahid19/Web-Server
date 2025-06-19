@@ -137,10 +137,10 @@ void server::server_run( void ) {
 				INFO_LOGS && std::cout << "Client socket is readable." << std::endl;
 				int client_socket = this->_events[i].data.fd;
 				client *client = this->_connections[client_socket];
-				ssize_t total_bytes = 0;
+				ssize_t read_bytes = 0;
 
-				parsing_status r = readRequest(client, i, &total_bytes);
-				if (r == parsing_status::COMPLETED && total_bytes > 0) {
+				parsing_status r = readRequest(client, i, &read_bytes);
+				if (r == parsing_status::COMPLETED && read_bytes > 0) {
 					struct epoll_event clt_event = this->_events_map[this->_events[i].data.fd];
 
 					::modEpollEvent(
@@ -148,7 +148,7 @@ void server::server_run( void ) {
 					);
 					INFO_LOGS && std::cout << "Socket updated to writable." << std::endl;
 				}
-				else if (total_bytes == 0) {
+				else if (read_bytes == 0) {
 					// (client disconnected / error client-side)
 					INFO_LOGS && std::cout << "closing client socket: " \
 						<< client_socket << std::endl;
@@ -161,7 +161,9 @@ void server::server_run( void ) {
 					this->_connections.erase(client_socket);
 					client->decrementNumConx();
 				}
-				else if (r == parsing_status::IN_PROGRESS) {
+				else if (r == parsing_status::IN_PROGRESS
+						|| r == parsing_status::READING_ERROR)
+				{
 					struct epoll_event clt_event = this->_events_map[this->_events[i].data.fd];
 
 					::modEpollEvent(
@@ -261,26 +263,29 @@ void server::addClient( int serverSocket ) {
  * 
  * Return: void.
  */
-parsing_status	server::readRequest(client *client, int i, ssize_t* total_bytes) {
+parsing_status	server::readRequest(client *client, int i, ssize_t* read_bytes) {
 	char request_buffer[REQ_BUF_SIZE + 1];
 	int client_socket = this->_events[i].data.fd;
-
 	ssize_t bytes = 0;
 
 	memset(request_buffer, 0, REQ_BUF_SIZE + 1);
 
-	// Read only buffer size bytes, read again in the next iteration
-	// parse the given data, and change state accordingly
-	// (states would be checked through the request_parsing class)
+	/**
+	 * Read only buffer size bytes, read again in the next iteration
+	 * parse the given data, and change state accordingly
+	 * (states would be checked through the request_parsing class)
+	*/
 
 	bytes = recv(client_socket, request_buffer, REQ_BUF_SIZE, 0);
 	if (bytes < 0) {
-		return parsing_status::ERROR; // TO CHANGE LATER FOR APPROPRIATE HANDLING.
+		std::cerr << "Error reading from client socket: " \
+			<< client_socket << ", " << strerror(errno) << std::endl;
+		return parsing_status::READING_ERROR;
 	}
 	request_buffer[bytes] = '\0';
 	REQ_BUFFER_LOGS && std::cout << static_cast<int>(request_buffer[0]) << ", ";
 	INFO_LOGS && std::cout << "Received bytes: " << bytes << std::endl;
-	*total_bytes += bytes;
+	*read_bytes += bytes;
 	client->reqAppend(request_buffer, bytes);
 
 	client->getRequestParser().parse(client->getRequest());

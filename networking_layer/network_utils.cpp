@@ -40,5 +40,8 @@ void	modEpollEvent(
 	struct epoll_event *event_obj
 ) {
 	event_obj->events = events;
-	epoll_ctl(epoll_fd, EPOLL_CTL_MOD, socket, event_obj);
+	if (epoll_ctl(epoll_fd, EPOLL_CTL_MOD, socket, event_obj) < 0) {
+		std::cerr << "Error epoll_ctl: unable to modify client socket to reaable." ;
+		std::cerr << std::endl;
+	}
 }

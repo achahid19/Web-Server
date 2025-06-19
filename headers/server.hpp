@@ -68,6 +68,7 @@ public:
 			server_error( const std::string &msg );
 			virtual const char* what() const throw();
 	};
+	
 	class client_connection_error : public std::exception {
 		private:
 			const std::string _msg;
