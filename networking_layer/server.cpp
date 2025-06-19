@@ -26,6 +26,9 @@ int server::running = true; // flag to control server event's loop
  * init the epoll mechanism to handle events.
  */
 server::server( void ) {
+	this->_listening.insert(std::make_pair("127.0.0.2", 9090));
+	this->_listening.insert(std::make_pair("127.0.0.3", 7070));
+	this->_listening.insert(std::make_pair("127.0.0.1", 8080));
 	this->_events.resize(MAX_EVENTS); // reserve space for events
 
 	this->_epoll_fd = epoll_create1(0);
@@ -139,8 +142,8 @@ void server::server_run( void ) {
 				client *client = this->_connections[client_socket];
 				ssize_t read_bytes = 0;
 
-				parsing_status r = readRequest(client, i, &read_bytes);
-				if (r == parsing_status::COMPLETED && read_bytes > 0) {
+				parsing_status parser_status = readRequest(client, i, &read_bytes);
+				if (parser_status == COMPLETED && read_bytes > 0) {
 					struct epoll_event clt_event = this->_events_map[this->_events[i].data.fd];
 
 					::modEpollEvent(
@@ -152,7 +155,10 @@ void server::server_run( void ) {
 					// (client disconnected / error client-side)
 					INFO_LOGS && std::cout << "closing client socket: " \
 						<< client_socket << std::endl;
-					epoll_ctl(this->_epoll_fd, EPOLL_CTL_DEL, client_socket, NULL);
+					if (epoll_ctl(this->_epoll_fd, EPOLL_CTL_DEL, client_socket, NULL) < 0) {
+						std::cerr << "Error removing client socket from epoll: " \
+							<< client_socket << ", " << strerror(errno) << std::endl;
+					}
 					close(client_socket);
 					this->_opennedFds.erase(
 						"client " + ::ft_to_string(client->getClientId())
@@ -161,8 +167,8 @@ void server::server_run( void ) {
 					this->_connections.erase(client_socket);
 					client->decrementNumConx();
 				}
-				else if (r == parsing_status::IN_PROGRESS
-						|| r == parsing_status::READING_ERROR)
+				else if (parser_status == IN_PROGRESS
+						|| parser_status == READING_ERROR)
 				{
 					struct epoll_event clt_event = this->_events_map[this->_events[i].data.fd];
 
@@ -196,7 +202,7 @@ void server::server_run( void ) {
 						http_response += "\r\n"; // End of headers
 						http_response += response_body; 
 						send(client_socket, http_response.c_str(), http_response.length(), 0);
-					 */
+					*/
 					
 					/* RESPONSE HANDLER GOES HERE */
 					
@@ -280,27 +286,27 @@ parsing_status	server::readRequest(client *client, int i, ssize_t* read_bytes) {
 	if (bytes < 0) {
 		std::cerr << "Error reading from client socket: " \
 			<< client_socket << ", " << strerror(errno) << std::endl;
-		return parsing_status::READING_ERROR;
+		return READING_ERROR;
 	}
 	request_buffer[bytes] = '\0';
 	REQ_BUFFER_LOGS && std::cout << static_cast<int>(request_buffer[0]) << ", ";
 	INFO_LOGS && std::cout << "Received bytes: " << bytes << std::endl;
 	*read_bytes += bytes;
+	
 	client->reqAppend(request_buffer, bytes);
-
 	client->getRequestParser().parse(client->getRequest());
 
-	if (client->getRequestParser().getStatus() == parsing_status::COMPLETED) {
+	if (client->getRequestParser().getStatus() == COMPLETED) {
 		REQUEST_LOGS && std::cout << client->getRequestParser().getRequestLine() \
 			<< std::endl;
 		REQUEST_LOGS && std::cout << client->getRequestParser().getHeadersMap().getHeaders() \
 			<< std::endl;
 		REQUEST_LOGS && std::cout << client->getRequestParser().getBodyContent() \
 			<< std::endl;
-		return parsing_status::COMPLETED;
+		return COMPLETED;
 	}
 	
-	return parsing_status::IN_PROGRESS;
+	return IN_PROGRESS;
 }
 
 /**
@@ -367,7 +373,11 @@ void server::signalHandler( int signal ) {
 
 // exception handling
 server::server_error::server_error( const std::string &msg ) : _msg(msg) {};
-
 const char* server::server_error::what() const throw() {
+	return _msg.c_str();
+}
+
+server::client_connection_error::client_connection_error( const std::string &msg ) : _msg(msg) {};
+const char* server::client_connection_error::what() const throw() {
 	return _msg.c_str();
 }

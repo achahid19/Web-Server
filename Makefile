@@ -1,7 +1,7 @@
 # Variables
 CC = c++
 
-CFLAGS = -std=c++11
+CFLAGS = -Wall -Wextra -Werror -std=c++98
 
 SRCS =	main_test.cpp \
 		$(addprefix networking_layer/, server.cpp client.cpp network_utils.cpp ) \

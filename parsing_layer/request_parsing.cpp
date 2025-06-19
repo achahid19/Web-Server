@@ -3,14 +3,14 @@
 
 // constructor
 request_parsing::request_parsing(void) {
-	this->_status = parsing_status::NOT_STARTED;
+	this->_parser_status = NOT_STARTED;
 	this->_body = false;
 };
 
 // methods
 void request_parsing::parse(const std::string& request) {
 	if (request.empty()) {
-		return (this->_status = parsing_status::NOT_STARTED, void());
+		return (this->_parser_status = NOT_STARTED, void());
 	}
 
 	size_t pos = request.find("\r\n");
@@ -18,21 +18,21 @@ void request_parsing::parse(const std::string& request) {
 	size_t headers_end;
 	
 	if (
-		this->_status == parsing_status::NOT_STARTED
-		|| this->_status == parsing_status::REQUEST_LINE
+		this->_parser_status == NOT_STARTED
+		|| this->_parser_status == REQUEST_LINE
 	)
 	{
 		// Parse the request line
 		if (pos == std::string::npos) {
-			return (this->_status = parsing_status::REQUEST_LINE, void());
+			return (this->_parser_status = REQUEST_LINE, void());
 		}
 
 		std::string start_line = request.substr(0, pos);
 		_start_line.loadRequestLine(start_line);
-		this->_status = parsing_status::HEADERS;
+		this->_parser_status = HEADERS;
 	}
 
-	if (this->_status == parsing_status::HEADERS) {
+	if (this->_parser_status == HEADERS) {
 		// Check if there are headers
 		headers_end = request.find("\r\n\r\n", headers_start);
 		if (headers_end == std::string::npos) {
@@ -45,13 +45,13 @@ void request_parsing::parse(const std::string& request) {
 			this->_start_line.getMethod() == "GET"
 			|| this->_start_line.getMethod() == "DELETE"
 		) {
-			return (this->_status = parsing_status::COMPLETED, void());
+			return (this->_parser_status = COMPLETED, void());
 		}
 		
 		else if (this->_start_line.getMethod() == "POST") {
 			INFO_LOGS && std::cout << "Expecting a body" << std::endl;
 			this->_body = true;
-			this->_status = parsing_status::BODY;
+			this->_parser_status = BODY;
 		}
 	}
 	
@@ -67,12 +67,12 @@ void request_parsing::parse(const std::string& request) {
 		this->_bodyContent = request.substr(body_start, body_end);
 	}
 
-	this->_status = parsing_status::COMPLETED;
+	this->_parser_status = COMPLETED;
 }
 
 void	request_parsing::resetParser( void ) {
 	this->_body = false;
-	this->_status = parsing_status::NOT_STARTED;
+	this->_parser_status = NOT_STARTED;
 	this->_start_line.setHttpVersion("");
 	this->_start_line.setUri("");
 	this->_start_line.setMethod("");
@@ -81,7 +81,7 @@ void	request_parsing::resetParser( void ) {
 
 // getters
 parsing_status request_parsing::getStatus() const {
-	return this->_status;
+	return this->_parser_status;
 }
 
 request_line const& request_parsing::getRequestLine() const {

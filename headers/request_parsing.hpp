@@ -5,14 +5,14 @@
 #include <map>
 #include "http_headers.hpp"
 
-enum class parsing_status {
-		NOT_STARTED,
-		REQUEST_LINE,
-		HEADERS,
-		BODY,
-		IN_PROGRESS,
-		COMPLETED,
-		READING_ERROR
+enum parsing_status {
+	NOT_STARTED,
+	REQUEST_LINE,
+	HEADERS,
+	BODY,
+	IN_PROGRESS,
+	COMPLETED,
+	READING_ERROR
 };
 
 class http_headers;
@@ -22,7 +22,7 @@ class request_parsing {
 private:
 	// states
 	bool			_body;
-	parsing_status 	_status;
+	parsing_status 	_parser_status;
 	
 	// request structure
 	request_line 	_start_line;

@@ -6,7 +6,7 @@ int	client::_connections = 0;
 // constructor
 client::client( int sock ) {
 	this->_id = ++this->_num_conx;
-	sock = this->_sock;
+	this->_sock = sock;
 	this->_connections++;
 }
 
@@ -15,7 +15,7 @@ client::~client( void ) {
 };
 
 // Methods
-void	client::reqAppend( char *req_buff, ssize_t size ) {
+void	client::reqAppend( char *req_buff, size_t size ) {
 	this->_request.append(req_buff, size);
 }
 

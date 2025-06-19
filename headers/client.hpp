@@ -27,7 +27,7 @@ public:
 	~client( void );
 
 	// methods
-	void	reqAppend( char *req_buffer, ssize_t size );
+	void	reqAppend( char *req_buffer, size_t size );
 	void	clearReq( void );
 	
 	// getters

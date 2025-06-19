@@ -14,6 +14,7 @@
 #include "client.hpp"
 #include "request_parsing.hpp"
 #include <exception> // for exception handling
+#include <cerrno>
 
 #define MAX_EVENTS 5 // max number of events to handle in epoll in one go
 #define REQ_BUF_SIZE 4096 // request buffer size, to hold incoming data
@@ -26,11 +27,7 @@ private:
 	std::map< int, client* >	_connections;
 
 	// for testing, need to read config for this purpose
-	std::map< std::string, int > _listening = {
-		{"127.0.0.2", 9090},
-		{"127.0.0.3", 7070},
-		{"127.0.0.1", 8080}
-	};
+	std::map< std::string, int > _listening;
 
 	// epoll attributes
 	int									_epoll_fd; // interest list, handle for epoll instance
@@ -66,6 +63,7 @@ public:
 			const std::string _msg;
 		public:
 			server_error( const std::string &msg );
+			~server_error( void ) throw() {};
 			virtual const char* what() const throw();
 	};
 	
@@ -73,7 +71,8 @@ public:
 		private:
 			const std::string _msg;
 		public:
-			client_connection_error( const std::string &msg ) : _msg(msg) {};
-			virtual const char* what() const throw() { return _msg.c_str(); };
+			client_connection_error( const std::string &msg );
+			~client_connection_error( void ) throw() {};
+			virtual const char* what() const throw();
 	};
 };
