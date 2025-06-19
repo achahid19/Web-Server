@@ -56,6 +56,9 @@ void request_parsing::parse(const std::string& request) {
 	}
 	
 	if (this->_body) {
+		/**
+		 * IMPLEMENT CHUNCKS MECHANISM LATER.
+		 */
 		size_t body_start = headers_end + 4;
 		size_t body_end = request.find("\r\n", body_start);
 		if (body_end == std::string::npos) {

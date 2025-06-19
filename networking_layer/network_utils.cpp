@@ -10,13 +10,16 @@
  * Return: struct epoll_event object containing the event information.
  */
 struct epoll_event	addEpollEvent(
-	int epoll_fd, int socket, uint32_t events
+	int epoll_fd, int socket, uint32_t events,
+	bool *error
 ) {
 	struct epoll_event event_obj;
 	event_obj.events = events;
 	event_obj.data.fd = socket;
 
-	epoll_ctl(epoll_fd, EPOLL_CTL_ADD, socket, &event_obj);
+	if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, socket, &event_obj) < 0) {
+		*error = true;
+	};
 	// for event_obj Kernel making its own copy
 
 	return event_obj;

@@ -4,7 +4,10 @@
 #include "client.hpp"
 #include "network_utils.hpp"
 
-static inline void serverBind( std::string const &host, int port, int serverSocket );
+static inline bool serverBind( std::string const &host, int port, int serverSocket );
+static inline void serverError( std::string const &error ) {
+	std::cerr << error << strerror(errno) << std::endl;
+}
 
 int server::running = true; // flag to control server loop
 
@@ -26,28 +29,48 @@ int server::running = true; // flag to control server loop
  * init the epoll mechanism to handle events.
  */
 server::server( void ) {
+	this->_status = server_status::NOT_STARTED;
 	this->_events.resize(MAX_EVENTS); // reserve space for events
 
 	this->_epoll_fd = epoll_create1(0);
+	if (this->_epoll_fd < 0) {
+		::serverError("Error creating epoll instance: ");
+		this->_status = server_status::ERROR; return ;
+	}
 	this->_opennedFds.insert(std::make_pair("epoll instance", this->_epoll_fd));
-
 	for (
 		std::map<std::string, int>::iterator it = this->_listening.begin();
 		it != this->_listening.end();
 		it++
 	) {
 		int serverSocket = socket(AF_INET, SOCK_STREAM, 0);
-		
+		if (serverSocket < 0) {
+			::serverError("Error creating socket: ");
+			this->_status = server_status::ERROR; return ;
+		}
 		INFO_LOGS && std::cout << "Server Socket created: " << serverSocket;
 		INFO_LOGS && std::cout << std::endl;
 		this->_serverSockets.push_back(serverSocket);
-		::serverBind(it->first, it->second, serverSocket);
-		listen(serverSocket, SOMAXCONN);
-		fcntl(serverSocket, F_SETFL, O_NONBLOCK);
+		if (::serverBind(it->first, it->second, serverSocket) == false) {
+			this->_status = server_status::ERROR; return ;
+		}
+		if (listen(serverSocket, SOMAXCONN) < 0) {
+			::serverError("Error listening on socket: " + it->first + ": ");
+			this->_status = server_status::ERROR; return ;
+		}
+		if (fcntl(serverSocket, F_SETFL, O_NONBLOCK) < 0) {
+			::serverError("Error setting socket to non-blocking: ");
+			this->_status = server_status::ERROR; return ;
+		}
 		this->_opennedFds.insert(std::make_pair(
 			"listening socket " + ::ft_to_string(serverSocket), serverSocket
 		));
-		::addEpollEvent(this->_epoll_fd, serverSocket, EPOLLIN);
+		bool error = false;
+		::addEpollEvent(this->_epoll_fd, serverSocket, EPOLLIN, &error);
+		if (error) {
+			::serverError("Error adding socket to epoll: " + it->first + ": ");
+			this->_status = server_status::ERROR; return ;
+		}
 	}
 }
 
@@ -202,7 +225,7 @@ bool server::addClient( int serverSocket ) {
 	fcntl(client_socket, F_SETFL, fcntl(client_socket, F_GETFL, 0) | O_NONBLOCK);
 	// Watch for input, use Edge-Triggered MODE. (EPOLLET)
 	struct epoll_event clt_event = 
-		::addEpollEvent(this->_epoll_fd, client_socket, EPOLLIN | EPOLLET);
+		::addEpollEvent(this->_epoll_fd, client_socket, EPOLLIN | EPOLLET, NULL);
 	this->_events_map.insert(std::make_pair(client_socket, clt_event));
 	INFO_LOGS && std::cout << "New connection on socket: " << \
 		client_socket << std::endl;
@@ -284,20 +307,29 @@ bool server::isServerSocket( int socket ) {
  * @port: the port number to bind to.
  * @serverSocket: listening socket fd.
  * 
- * Return: void.
+ * Return: bool.
  */
-static inline void serverBind( std::string const &host, int port, int serverSocket ) {
+static inline bool serverBind( std::string const &host, int port, int serverSocket ) {
 	sockaddr_in	serverAddress;
 	serverAddress.sin_family = AF_INET;
 	serverAddress.sin_port = htons(port);
 	serverAddress.sin_addr.s_addr = inet_addr(host.c_str());
 
 	int non_blocking_flag = 1;
-	setsockopt(
-		serverSocket, SOL_SOCKET, SO_REUSEADDR,
-		&non_blocking_flag, sizeof(non_blocking_flag)
-	);
-	bind(serverSocket, (struct sockaddr*)&serverAddress, sizeof(serverAddress));
+	if (
+		setsockopt(
+			serverSocket, SOL_SOCKET, SO_REUSEADDR,
+			&non_blocking_flag, sizeof(non_blocking_flag)
+		) < 0
+	) {
+		::serverError("Error setting socket options: ");
+		return false;
+	}
+	if (bind(serverSocket, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) < 0) {
+		::serverError("Error binding socket to " + host + ":" + ::ft_to_string(port) + ": ");
+		return false;
+	}
+	return true;
 }
 
 /**

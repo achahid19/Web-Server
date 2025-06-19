@@ -10,7 +10,8 @@
 struct epoll_event	addEpollEvent(
 	int epoll_fd,
 	int serverSocket,
-	uint32_t events
+	uint32_t events,
+	bool *error
 );
 
 void	modEpollEvent(
