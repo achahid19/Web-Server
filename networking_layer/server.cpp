@@ -11,10 +11,10 @@ int server::running = true; // flag to control server event's loop
 /**
  * TODO list
  * 
- * methods handling
- * Implement a proper error handling mechanism.
- * c++98 compliance
- * config file
+ * Implement a proper error handling mechanism. DONE
+ * c++98 compliance. DONE
+ * config file. IN PROGRESS
+ * methods handling. IN PROGRESS
  */
 
 /**
@@ -52,9 +52,9 @@ server::server( void ) {
 		if (listen(serverSocket, SOMAXCONN) < 0) {
 			throw server_error("Error listening on socket: " + it->first);
 		}
-		if (fcntl(serverSocket, F_SETFL, O_NONBLOCK) < 0) {
-			throw server_error("Error setting socket to non-blocking: " + it->first);
-		}
+		// if (fcntl(serverSocket, F_SETFL, O_NONBLOCK, FD_CLOEXEC) < 0) {
+		// 	throw server_error("Error setting socket to non-blocking: " + it->first);
+		// }
 		this->_opennedFds.insert(std::make_pair(
 			"listening socket " + ::ft_to_string(serverSocket), serverSocket
 		));
@@ -236,7 +236,7 @@ void server::addClient( int serverSocket ) {
 			+ ::ft_to_string(serverSocket)
 		);
 	}
-	fcntl(client_socket, F_SETFL, fcntl(client_socket, F_GETFL, 0) | O_NONBLOCK);
+	//fcntl(client_socket, F_SETFL, O_NONBLOCK, FD_CLOEXEC);
 	// Watch for input, use Edge-Triggered MODE. (EPOLLET)
 	bool error = false;
 	struct epoll_event clt_event = ::addEpollEvent(
