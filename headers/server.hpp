@@ -15,17 +15,22 @@
 #include "request_parsing.hpp"
 #include <exception> // for exception handling
 #include <cerrno>
+#include "config.hpp"
 
 #define MAX_EVENTS 5 // max number of events to handle in epoll in one go
 #define REQ_BUF_SIZE 4096 // request buffer size, to hold incoming data
 
 class client;
+class server_block;
+class config_file;
 
 class server {
 private:
 	std::vector< int >			_serverSockets; // fd socket listenning for new client's connections
 	std::map< int, client* >	_connections;
 
+	config_file				_server_config;
+	
 	// for testing, need to read config for this purpose
 	std::map< std::string, int > _listening;
 
@@ -48,11 +53,12 @@ private:
 
 	// dont instantiate without param
 	// no copy
+	server( void );
 	server( server& copy );
 	server&	operator&( server& copy );
 
 public:
-	server( void );
+	server( const char *config_file );
 	~server( void );
 
 	void	server_run( void );

@@ -25,7 +25,8 @@ int server::running = true; // flag to control server event's loop
  * and then putting them in a listening state.
  * init the epoll mechanism to handle events.
  */
-server::server( void ) {
+server::server( const char *config_file ) {
+	this->_server_config.loadConfig(config_file);
 	this->_listening.insert(std::make_pair("127.0.0.2", 9090));
 	this->_listening.insert(std::make_pair("127.0.0.3", 7070));
 	this->_listening.insert(std::make_pair("127.0.0.1", 8080));
@@ -52,9 +53,9 @@ server::server( void ) {
 		if (listen(serverSocket, SOMAXCONN) < 0) {
 			throw server_error("Error listening on socket: " + it->first);
 		}
-		if (fcntl(serverSocket, F_SETFL, O_NONBLOCK) < 0) {
-			throw server_error("Error setting socket to non-blocking: " + it->first);
-		}
+		// if (fcntl(serverSocket, F_SETFL, O_NONBLOCK) < 0) {
+		// 	throw server_error("Error setting socket to non-blocking: " + it->first);
+		// }
 		this->_opennedFds.insert(std::make_pair(
 			"listening socket " + ::ft_to_string(serverSocket), serverSocket
 		));
@@ -236,7 +237,7 @@ void server::addClient( int serverSocket ) {
 			+ ::ft_to_string(serverSocket)
 		);
 	}
-	fcntl(client_socket, F_SETFL, fcntl(client_socket, F_GETFL, 0) | O_NONBLOCK);
+	// fcntl(client_socket, F_SETFL, fcntl(client_socket, F_GETFL, 0) | O_NONBLOCK);
 	// Watch for input, use Edge-Triggered MODE. (EPOLLET)
 	bool error = false;
 	struct epoll_event clt_event = ::addEpollEvent(

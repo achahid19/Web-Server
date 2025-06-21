@@ -1,9 +1,13 @@
 #include  "server.hpp"
 
-int	main( void ) {
+int	main( int ac, char **av ) {
+	if (ac != 2) {
+		std::cerr << "Usage: " << av[0] << " <config_file>" << std::endl;
+		return 1;
+	}
 	
 	try {
-		server srv;
+		server srv(av[1]);
 
 		srv.server_run();
 	}
