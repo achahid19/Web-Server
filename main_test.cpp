@@ -15,6 +15,10 @@ int	main( int ac, char **av ) {
 		std::cerr << "Server error: " << e.what() << std::endl;
 		return 1;
 	}
+	catch (const std::out_of_range &e) {
+		std::cerr << "Out of range error: " << e.what() << std::endl;
+		return 1;
+	}
 	catch (const std::exception &e) {
 		std::cerr << "Unexpected error: " << e.what() << std::endl;
 		return 1;
