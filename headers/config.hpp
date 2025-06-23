@@ -18,6 +18,10 @@ private:
 
 	// helper methods
 	void	_retrieveServerBlocks( void );
+	void	_addPortDirective( const std::string &line, server_block *block );
+	void	_addHostDirective( const std::string &line, server_block *block );
+	void	_addServerNameDirective( const std::string &line, server_block *block );
+	void	_addRootDirective( const std::string &line, server_block *block );
 	void	_directivesCheckList( void );
 
 public:

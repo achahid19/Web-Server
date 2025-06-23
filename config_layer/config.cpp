@@ -78,6 +78,8 @@ void config_file::addServerBlock( const server_block *block ) {
 	_server_blocks.push_back(block);
 }
 
+// helper methods
+
 void	config_file::_retrieveServerBlocks( void ) {
 	server_block	*block = new server_block();
 	std::string		line;
@@ -92,36 +94,16 @@ void	config_file::_retrieveServerBlocks( void ) {
 			continue; // Skip empty lines and comments
 		}
 		else if (line.find("port") != std::string::npos) {
-			size_t sep = line.find_first_of(" \t");
-
-			if (sep == std::string::npos) {
-				throw config_error("Invalid port directive in server block: " + line);
-			}
-			block->setPort(::ft_trim_spaces(line.substr(line.find_first_of(" \t") + 1)));
+			this->_addPortDirective(line, block);
 		}
 		else if (line.find("host") != std::string::npos) {
-			size_t sep = line.find_first_of(" \t");
-
-			if (sep == std::string::npos) {
-				throw config_error("Invalid host directive in server block: " + line);
-			}
-			block->setHost(::ft_trim_spaces(line.substr(line.find_first_of(" \t") + 1)));
-			}
-			else if (line.find("server_name") != std::string::npos) {
-			size_t sep = line.find_first_of(" \t");
-
-			if (sep == std::string::npos) {
-				throw config_error("Invalid server_name directive in server block: " + line);
-			}
-			block->setServerName(::ft_trim_spaces(line.substr(line.find_first_of(" \t") + 1)));
+			this->_addHostDirective(line, block);
+		}
+		else if (line.find("server_name") != std::string::npos) {
+			this->_addServerNameDirective(line, block);
 		}
 		else if (line.find("root") != std::string::npos) {
-			size_t sep = line.find_first_of(" \t");
-
-			if (sep == std::string::npos) {
-				throw config_error("Invalid root directive in server block: " + line);
-			}
-			block->setRoot(::ft_trim_spaces(line.substr(line.find_first_of(" \t") + 1)));
+			this->_addRootDirective(line, block);
 		}
 		// else if (line.find("client_max_body_size") != std::string::npos) {
 			// 	block->setClientMaxBodySize(stoi(line.substr(line.find(' ') + 1)));
@@ -154,6 +136,42 @@ void	config_file::_directivesCheckList( void ) {
 		(*it)->getServerName();
 		(*it)->getRoot();
 	}
+}
+
+void	config_file::_addPortDirective( const std::string &line, server_block *block ) {
+	size_t sep = line.find_first_of(" \t");
+
+	if (sep == std::string::npos) {
+		throw config_error("Invalid port directive in server block: " + line);
+	}
+	block->setPort(::ft_trim_spaces(line.substr(line.find_first_of(" \t") + 1)));
+}
+
+void	config_file::_addHostDirective( const std::string &line, server_block *block ) {
+	size_t sep = line.find_first_of(" \t");
+
+	if (sep == std::string::npos) {
+		throw config_error("Invalid host directive in server block: " + line);
+	}
+	block->setHost(::ft_trim_spaces(line.substr(line.find_first_of(" \t") + 1)));
+}
+
+void	config_file::_addServerNameDirective( const std::string &line, server_block *block ) {
+	size_t sep = line.find_first_of(" \t");
+
+	if (sep == std::string::npos) {
+		throw config_error("Invalid server_name directive in server block: " + line);
+	}
+	block->setServerName(::ft_trim_spaces(line.substr(line.find_first_of(" \t") + 1)));
+}
+
+void	config_file::_addRootDirective( const std::string &line, server_block *block ) {
+	size_t sep = line.find_first_of(" \t");
+
+	if (sep == std::string::npos) {
+		throw config_error("Invalid root directive in server block: " + line);
+	}
+	block->setRoot(::ft_trim_spaces(line.substr(line.find_first_of(" \t") + 1)));
 }
 
 // exception handling
