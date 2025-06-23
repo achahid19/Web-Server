@@ -62,6 +62,24 @@ const std::string&	server_block::getRoot( void ) const {
 	return this->_directives.at("root");
 }
 
+// safe getters
+const std::string	server_block::get_port_safe( void ) const {
+	return this->_directives.count("port") ? this->_directives.at("port") : "";
+}
+
+const std::string	server_block::get_host_safe( void ) const {
+	return this->_directives.count("host") ? this->_directives.at("host") : "";
+}
+
+const std::string	server_block::get_server_name_safe( void ) const {
+	return this->_directives.count("server_name") ? this->_directives.at("server_name") : "";
+}
+
+const std::string	server_block::get_root_safe( void ) const {
+	return this->_directives.count("root") ? this->_directives.at("root") : "";
+}
+
+
 /**
  * General Directive's value check (for server config block).
  */
