@@ -7,7 +7,7 @@ server {
 	port 9090;
 
 
-				host ;
+				host fdslkj;
 
 	server_name something;
 

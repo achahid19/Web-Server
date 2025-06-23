@@ -21,14 +21,6 @@ config_file ::config_file( void ) {
 
 // destructor
 config_file ::~config_file( void ) {
-	// Clean up server blocks if needed
-	for (
-		std::vector< const server_block * >::iterator it = this->_server_blocks.begin();
-		it != this->_server_blocks.end();
-		it++
-	) {
-		delete *it;
-	}
 	this->_server_blocks.clear();
 	_file.close();
 	CONFIG_LOGS && std::cout << "Config file destroyed." << std::endl;
@@ -74,14 +66,14 @@ void config_file::loadConfig( const char *config_file ) {
 	this->_directivesCheckList();
 }
 
-void config_file::addServerBlock( const server_block *block ) {
+void config_file::addServerBlock( const server_block &block ) {
 	_server_blocks.push_back(block);
 }
 
 // helper methods
 
 void	config_file::_retrieveServerBlocks( void ) {
-	server_block	*block = new server_block();
+	server_block	block;
 	std::string		line;
 
 	while (
@@ -94,16 +86,16 @@ void	config_file::_retrieveServerBlocks( void ) {
 			continue; // Skip empty lines and comments
 		}
 		else if (line.find("port") != std::string::npos) {
-			this->_addPortDirective(line, block);
+			this->_addPortDirective(line, &block);
 		}
 		else if (line.find("host") != std::string::npos) {
-			this->_addHostDirective(line, block);
+			this->_addHostDirective(line, &block);
 		}
 		else if (line.find("server_name") != std::string::npos) {
-			this->_addServerNameDirective(line, block);
+			this->_addServerNameDirective(line, &block);
 		}
 		else if (line.find("root") != std::string::npos) {
-			this->_addRootDirective(line, block);
+			this->_addRootDirective(line, &block);
 		}
 		// else if (line.find("client_max_body_size") != std::string::npos) {
 			// 	block->setClientMaxBodySize(stoi(line.substr(line.find(' ') + 1)));
@@ -127,14 +119,14 @@ void	config_file::_retrieveServerBlocks( void ) {
 
 void	config_file::_directivesCheckList( void ) {
 	for (
-		std::vector< const server_block * >::const_iterator it = this->_server_blocks.begin();
+		std::vector< server_block >::const_iterator it = this->_server_blocks.begin();
 		it != this->_server_blocks.end();
 		it++
 	) {
-		(*it)->getHost();
-		(*it)->getPort();
-		(*it)->getServerName();
-		(*it)->getRoot();
+		it->getHost();
+		it->getPort();
+		it->getServerName();
+		it->getRoot();
 	}
 }
 
