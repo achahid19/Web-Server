@@ -15,10 +15,14 @@ private:
 	// std::string		_index;
 	// bool			_autoindex;
 
+	// helper methods
+	void _validDirectiveValue( const std::string &value );
+
 public:
 	server_block( void );
 	~server_block( void );
 
+	
 	// setters
 	void setPort(const std::string &port);
 	void setHost(const std::string &host);
@@ -34,4 +38,14 @@ public:
 	const std::string& getRoot() const;
 	// unsigned int getClientMaxBodySize() const;
 	// std::string getIndex() const;
+
+	// exception handling
+	class config_error : public std::exception {
+	private:
+		const std::string _msg;
+	public:
+		config_error( const std::string &msg );
+		~config_error( void ) throw();
+		virtual const char* what() const throw();
+	};
 };

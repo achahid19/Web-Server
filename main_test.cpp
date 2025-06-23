@@ -1,4 +1,5 @@
 #include  "server.hpp"
+#include "config.hpp"
 
 int	main( int ac, char **av ) {
 	if (ac != 2) {
@@ -15,8 +16,12 @@ int	main( int ac, char **av ) {
 		std::cerr << "Server error: " << e.what() << std::endl;
 		return 1;
 	}
-	catch (const std::out_of_range &e) {
-		std::cerr << "Out of range error: " << e.what() << std::endl;
+	catch (const config_file::config_error &e) {
+		std::cerr << "Config error: " << e.what() << std::endl;
+		return 1;
+	}
+	catch (const server_block::config_error &e) {
+		std::cerr << "Config server block error: " << e.what() << std::endl;
 		return 1;
 	}
 	catch (const std::exception &e) {
