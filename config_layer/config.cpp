@@ -32,7 +32,7 @@ config_file ::~config_file( void ) {
 	this->_server_blocks.clear();
 	_file.close();
 	CONFIG_LOGS && std::cout << "Config file destroyed." << std::endl;
-	this->_config_file = NULL;
+	this->_config_file_path = NULL;
 	this->_server_block_count = 0;
 	this->_file.clear();
 };
@@ -41,11 +41,11 @@ config_file ::~config_file( void ) {
  * loadConfig - Load configuration from a file.
  */
 void config_file::loadConfig( const char *config_file ) {
-	_config_file = config_file;
-	this->_file.open(_config_file);
+	_config_file_path = config_file;
+	this->_file.open(_config_file_path);
 
 	if (!this->_file.is_open()) {
-		throw config_error("Could not open config file: " + std::string(_config_file));
+		throw config_error("Could not open config file: " + std::string(_config_file_path));
 	}
 	while (true) {
 		std::string line;
@@ -54,7 +54,7 @@ void config_file::loadConfig( const char *config_file ) {
 			CONFIG_LOGS && std::cout << "End of file reached." << std::endl;
 			if (this->_server_block_count == 0) {
 				throw config_error(
-					"No server blocks found in config file: " + std::string(_config_file)
+					"No server blocks found in config file: " + std::string(_config_file_path)
 				);
 			}
 			break;
@@ -135,7 +135,7 @@ void	config_file::_retrieveServerBlocks( void ) {
 	}
 	line = ::ft_trim_spaces(line);
 	if (line.empty() || line[0] != '}') {
-		throw config_error("Invalid server block in config file: " + std::string(_config_file));
+		throw config_error("Invalid server block in config file: " + std::string(_config_file_path));
 	}
 	else {
 		this->addServerBlock(block);

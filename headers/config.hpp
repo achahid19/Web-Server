@@ -8,7 +8,7 @@
 class config_file {
 private:
 	std::vector< const server_block * >	_server_blocks; // NEED TO FREE WITH DESTRUCTOR.
-	const char 					*_config_file;
+	const char 					*_config_file_path;
 	int						_server_block_count;
 	std::ifstream					_file;
 
