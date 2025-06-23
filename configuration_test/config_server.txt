@@ -7,7 +7,7 @@ server {
 	port 9090;
 
 
-				host 			sfsdfd;
+				host ;
 
 	server_name something;
 

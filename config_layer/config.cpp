@@ -3,15 +3,15 @@
 
 /**
  * TODO list -
- * - do the server-block needs a mandatori set of directives to run?
- * - need to handle location blocks inside server blocks.
- * - retrieve listenning sockets from _server_config.
+ * - do the server-block needs a mandatori set of directives to run? LOGIC DONE
+ * - need to handle location blocks inside server blocks. LATER
+ * - retrieve listenning sockets from _server_config. TODO.
  */
 
  /**
   * Error handling:
-  * - seprator between directive and value can be any space or tab. TO HANDLE.
-  * - Check if the list of directives is valid.
+  * - seprator between directive and value can be any space or tab. TO HANDLE. DONE
+  * - Check if the list of directives is valid. DONE
   */
 
 // constructor
@@ -139,45 +139,33 @@ void	config_file::_directivesCheckList( void ) {
 }
 
 void	config_file::_addPortDirective( const std::string &line, server_block *block ) {
-	size_t sep = line.find_first_of(" \t");
-
-	if (sep == std::string::npos) {
-		throw config_error("Invalid port directive in server block: " + line);
-	}
+	this->_checkSeparator(line);
 	block->setPort(::ft_trim_spaces(line.substr(line.find_first_of(" \t") + 1)));
 }
 
 void	config_file::_addHostDirective( const std::string &line, server_block *block ) {
-	size_t sep = line.find_first_of(" \t");
-
-	if (sep == std::string::npos) {
-		throw config_error("Invalid host directive in server block: " + line);
-	}
+	this->_checkSeparator(line);
 	block->setHost(::ft_trim_spaces(line.substr(line.find_first_of(" \t") + 1)));
 }
 
 void	config_file::_addServerNameDirective( const std::string &line, server_block *block ) {
-	size_t sep = line.find_first_of(" \t");
-
-	if (sep == std::string::npos) {
-		throw config_error("Invalid server_name directive in server block: " + line);
-	}
+	this->_checkSeparator(line);
 	block->setServerName(::ft_trim_spaces(line.substr(line.find_first_of(" \t") + 1)));
 }
 
 void	config_file::_addRootDirective( const std::string &line, server_block *block ) {
-	size_t sep = line.find_first_of(" \t");
-
-	if (sep == std::string::npos) {
-		throw config_error("Invalid root directive in server block: " + line);
-	}
+	this->_checkSeparator(line);
 	block->setRoot(::ft_trim_spaces(line.substr(line.find_first_of(" \t") + 1)));
+}
+
+void	config_file::_checkSeparator( const std::string &line ) {
+	if (line.find_first_of(" \t") == std::string::npos) {
+		throw config_error("Invalid directive in server block: " + line);
+	}
 }
 
 // exception handling
 config_file::config_error::config_error( const std::string &msg ) : _msg(msg) {};
-
-config_file::config_error::~config_error( void ) throw() {};
 
 const char* config_file::config_error::what() const throw() {
 	return _msg.c_str();

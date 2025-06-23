@@ -79,8 +79,6 @@ void server_block::_validDirectiveValue( const std::string &value ) {
 // exception handling
 server_block::config_error::config_error( const std::string &msg ) : _msg(msg) {};
 
-server_block::config_error::~config_error( void ) throw() {};
-
 const char* server_block::config_error::what() const throw() {
 	return _msg.c_str();
 }

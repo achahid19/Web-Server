@@ -45,7 +45,7 @@ public:
 		const std::string _msg;
 	public:
 		config_error( const std::string &msg );
-		~config_error( void ) throw();
+		~config_error( void ) throw() {};
 		virtual const char* what() const throw();
 	};
 };

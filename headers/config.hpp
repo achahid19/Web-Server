@@ -23,6 +23,7 @@ private:
 	void	_addServerNameDirective( const std::string &line, server_block *block );
 	void	_addRootDirective( const std::string &line, server_block *block );
 	void	_directivesCheckList( void );
+	void	_checkSeparator( const std::string &line);
 
 public:
 	config_file( void );
@@ -39,7 +40,7 @@ public:
 		const std::string _msg;
 	public:
 		config_error( const std::string &msg );
-		~config_error( void ) throw();
+		~config_error( void ) throw() {};
 		virtual const char* what() const throw();
 	};
 };
