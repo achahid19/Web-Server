@@ -9,7 +9,7 @@ server {
 
 				host 127.0.0.2;
 
-	server_name something;
+	
 
 	root	index.html;
 }

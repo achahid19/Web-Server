@@ -5,7 +5,7 @@
  * TODO list -
  * - do the server-block needs a mandatori set of directives to run? LOGIC DONE
  * - need to handle location blocks inside server blocks. LATER
- * - retrieve listenning sockets from _server_config. TODO.
+ * - retrieve listenning sockets from _server_config. DONE.
  */
 
  /**
@@ -125,7 +125,7 @@ void	config_file::_directivesCheckList( void ) {
 	) {
 		it->getHost();
 		it->getPort();
-		it->getServerName();
+		// it->getServerName(); not mandatory
 		it->getRoot();
 	}
 }
