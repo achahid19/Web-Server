@@ -6,6 +6,7 @@
  * - do the server-block needs a mandatori set of directives to run? LOGIC DONE
  * - need to handle location blocks inside server blocks. LATER
  * - retrieve listenning sockets from _server_config. DONE.
+ * - Set server block as default. IN PROGRESS
  */
 
  /**
@@ -118,15 +119,27 @@ void	config_file::_retrieveServerBlocks( void ) {
 }
 
 void	config_file::_directivesCheckList( void ) {
+	this->_uniqueHosts.clear();
 	for (
 		std::vector< server_block >::const_iterator it = this->_server_blocks.begin();
 		it != this->_server_blocks.end();
 		it++
 	) {
-		it->getHost();
-		it->getPort();
+		std::cout << it->getHost() << std::endl;
+		std::cout << it->getPort() << std::endl;
+
+		// set default if is a unique host:port.
+		if (this->_uniqueHosts[it->get_host_safe()] != it->get_port_safe()) {
+			std::cout << "check: " << it->get_host_safe() << ":" << it->get_port_safe() << std::endl;
+			this->_uniqueHosts[it->get_host_safe()] = it->get_port_safe();
+
+			// set this server block as default.
+
+		}
+		
 		// it->getServerName(); not mandatory
-		it->getRoot();
+		std::cout << it->getRoot() << std::endl;
+
 	}
 }
 

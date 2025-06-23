@@ -7,7 +7,6 @@
  * 
  */
 
-
 // constructor
 server_block::server_block( void ) {};
 
@@ -19,22 +18,34 @@ server_block::~server_block( void ) {
 // Setters;
 void	server_block::setPort( const std::string &port ) {
 	this->_validDirectiveValue(port);
-	this->_directives.insert(std::make_pair("port", port));
+	this->_directives.insert(std::make_pair(
+		"port",
+		ft_trim_spaces(port.substr(0, port.find(';')))
+	));
 }
 
 void	server_block::setHost( const std::string & host ) {
 	this->_validDirectiveValue(host);
-	this->_directives.insert(std::make_pair("host", host));
+	this->_directives.insert(std::make_pair(
+		"host",
+		ft_trim_spaces(host.substr(0, host.find(';')))
+	));
 }
 
 void	server_block::setServerName( const std::string &serverName ) {
 	this->_validDirectiveValue(serverName);
-	this->_directives.insert(std::make_pair("server_name", serverName));
+	this->_directives.insert(std::make_pair(
+		"server_name",
+		ft_trim_spaces(serverName.substr(0, serverName.find(';')))
+	));
 }
 
 void	server_block::setRoot( const std::string &root ) {
 	this->_validDirectiveValue(root);
-	this->_directives.insert(std::make_pair("root", root));
+	this->_directives.insert(std::make_pair(
+		"root",
+		ft_trim_spaces(root.substr(0, root.find(';')))
+	));
 }
 
 // Getters

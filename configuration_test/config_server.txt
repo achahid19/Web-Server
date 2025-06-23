@@ -8,10 +8,11 @@ server {
 
 
 				host 127.0.0.1;
+				server_name test;
 
 	
 
-	root	index.html;
+	root	profile/;
 }
 
 
@@ -19,5 +20,24 @@ server {
 	port 8080;
 	host		127.0.0.1   ;
 	server_name hello;
-	root again;
+	root /var/html/;
 }
+
+server {
+	port 8080;
+	host 127.0.0.2;
+	server_name test2;
+	root /var/html;
+}
+
+# For servers listening on same host:port
+#- The first server for a unique host:port combination that you 
+# define in your configuration file will be the default server 
+# for all requests arriving on that specific host:port pair, 
+# unless those requests have a Host header that explicitly matches 
+# another server_name configured for that same host:port."
+
+# logic process decision for which block would process the request. (for servers listening on same host:port)
+#- if there is a server_name then that one has precedence.
+#- otherwise, check if a block matches the URI in location or root.
+#- if none, it falls directly in the default server block.

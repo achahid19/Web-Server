@@ -11,6 +11,7 @@ private:
 	const char 					*_config_file_path;
 	int						_server_block_count;
 	std::ifstream					_file;
+	std::map<std::string, std::string>		_uniqueHosts;
 
 	// no copy, no instantiation without config file.
 	config_file( const config_file &copy );

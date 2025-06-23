@@ -183,7 +183,7 @@ void server::server_run( void ) {
 
 				// this is a generic example of processing the request
 				{
-					/* 
+					/*
 						// we got the request, process it
 						INFO_LOGS && std::cout << "------------- DATA ---------------" << std::endl;
 						INFO_LOGS && std::cout << client->getRequest();
@@ -225,11 +225,11 @@ void	server::_loadListeningSockets( void ) {
 		it != this->_server_config.getServerBlocks().end();
 		it++
 	) {
-		std::string host = it->getHost().substr(0, it->getHost().find(';'));
+		//std::string host = it->getHost().substr(0, it->getHost().find(';'));
 		this->_listening.insert(
 			std::make_pair(
-				::ft_trim_spaces(host),
-				atoi(it->getPort().c_str())
+				it->get_host_safe(),
+				atoi(it->get_port_safe().c_str())
 		));
 	}
 }
