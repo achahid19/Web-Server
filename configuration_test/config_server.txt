@@ -7,7 +7,7 @@ server {
 	port 9090;
 
 
-				host fdslkj;
+				host 127.0.0.2;
 
 	server_name something;
 
@@ -17,7 +17,7 @@ server {
 
 server {
 	port 8080;
-	host		test;
+	host		127.0.0.1   ;
 	server_name hello;
 	root again;
 }

@@ -34,6 +34,11 @@ public:
 	void	addServerBlock( const server_block &block );
 	void	parseServerBlock( const std::string &block_str, server_block *block );
 
+	// getters
+	const std::vector<server_block>& getServerBlocks() const {
+		return _server_blocks;
+	}
+
 	// exception handling
 	class config_error : public std::exception {
 	private:

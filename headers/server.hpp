@@ -16,6 +16,7 @@
 #include <exception> // for exception handling
 #include <cerrno>
 #include "config.hpp"
+#include <cstdlib> // atoi() function
 
 #define MAX_EVENTS 5 // max number of events to handle in epoll in one go
 #define REQ_BUF_SIZE 4096 // request buffer size, to hold incoming data
@@ -47,9 +48,10 @@ private:
 	static int running; // flag to control server loop
 
 	// helper functions to run the server
-	void 					addClient( int );
-	parsing_status			readRequest(client *client, int i, ssize_t* total_bytes);
-	bool					isServerSocket( int socket );
+	void					_loadListeningSockets( void );
+	void 					_addClient( int );
+	parsing_status			_readRequest(client *client, int i, ssize_t* total_bytes);
+	bool					_isServerSocket( int socket );
 
 	// dont instantiate without param
 	// no copy

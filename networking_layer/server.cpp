@@ -16,7 +16,7 @@ int server::running = true; // flag to control server event's loop
  * c++98 compliance
  * config file
  */
-
+ 
 /**
  * server::server - constructor
  * 
@@ -27,11 +27,8 @@ int server::running = true; // flag to control server event's loop
  */
 server::server( const char *config_file ) {
 	this->_server_config.loadConfig(config_file);
-	this->_listening.insert(std::make_pair("127.0.0.2", 9090));
-	this->_listening.insert(std::make_pair("127.0.0.3", 7070));
-	this->_listening.insert(std::make_pair("127.0.0.1", 8080));
+	this->_loadListeningSockets();
 	this->_events.resize(MAX_EVENTS); // reserve space for events
-
 	this->_epoll_fd = epoll_create1(0);
 	if (this->_epoll_fd < 0) {
 		throw server_error("Error creating epoll instance");
@@ -127,9 +124,9 @@ void server::server_run( void ) {
 			<< this->_events[i].data.fd << std::endl;
 
 			// --CASE 1--: new client connexion
-			if (this->isServerSocket(this->_events[i].data.fd)) {
+			if (this->_isServerSocket(this->_events[i].data.fd)) {
 				try {
-					addClient(this->_events[i].data.fd);
+					this->_addClient(this->_events[i].data.fd);
 				}
 				catch (const client_connection_error &e) {
 					std::cerr << e.what() << std::endl;
@@ -143,7 +140,7 @@ void server::server_run( void ) {
 				client *client = this->_connections[client_socket];
 				ssize_t read_bytes = 0;
 
-				parsing_status parser_status = readRequest(client, i, &read_bytes);
+				parsing_status parser_status = this->_readRequest(client, i, &read_bytes);
 				if (parser_status == COMPLETED && read_bytes > 0) {
 					struct epoll_event clt_event = this->_events_map[this->_events[i].data.fd];
 
@@ -221,6 +218,22 @@ void server::server_run( void ) {
 	}
 }
 
+void	server::_loadListeningSockets( void ) {
+	// load listening sockets from config
+	for (
+		std::vector<server_block>::const_iterator it = this->_server_config.getServerBlocks().begin();
+		it != this->_server_config.getServerBlocks().end();
+		it++
+	) {
+		std::string host = it->getHost().substr(0, it->getHost().find(';'));
+		this->_listening.insert(
+			std::make_pair(
+				::ft_trim_spaces(host),
+				atoi(it->getPort().c_str())
+		));
+	}
+}
+
 /**
  * addClient - add a new client to the server.
  * 
@@ -228,7 +241,7 @@ void server::server_run( void ) {
  * 
  * Return: boolean.
  */
-void server::addClient( int serverSocket ) {
+void server::_addClient( int serverSocket ) {
 	int client_socket = accept(serverSocket, NULL, NULL);
 
 	if (client_socket < 0) {
@@ -270,7 +283,7 @@ void server::addClient( int serverSocket ) {
  * 
  * Return: void.
  */
-parsing_status	server::readRequest(client *client, int i, ssize_t* read_bytes) {
+parsing_status	server::_readRequest(client *client, int i, ssize_t* read_bytes) {
 	char request_buffer[REQ_BUF_SIZE + 1];
 	int client_socket = this->_events[i].data.fd;
 	ssize_t bytes = 0;
@@ -317,7 +330,7 @@ parsing_status	server::readRequest(client *client, int i, ssize_t* read_bytes) {
  * 
  * Return: boolean
  */
-bool server::isServerSocket( int socket ) {
+bool server::_isServerSocket( int socket ) {
 	for (
 		std::vector<int>::iterator it = this->_serverSockets.begin();
 		it != this->_serverSockets.end();
@@ -344,6 +357,8 @@ static inline void serverBind( std::string const &host, int port, int serverSock
 	serverAddress.sin_port = htons(port);
 	serverAddress.sin_addr.s_addr = inet_addr(host.c_str());
 
+	// check host and port
+	INFO_LOGS && std::cout << "Binding to " << host << ":" << port << std::endl;
 	int non_blocking_flag = 1;
 	if (
 		setsockopt(
