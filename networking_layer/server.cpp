@@ -50,9 +50,6 @@ server::server( const char *config_file ) {
 		if (listen(serverSocket, SOMAXCONN) < 0) {
 			throw server_error("Error listening on socket: " + it->first);
 		}
-		// if (fcntl(serverSocket, F_SETFL, O_NONBLOCK) < 0) {
-		// 	throw server_error("Error setting socket to non-blocking: " + it->first);
-		// }
 		this->_opennedFds.insert(std::make_pair(
 			"listening socket " + ::ft_to_string(serverSocket), serverSocket
 		));
@@ -250,7 +247,6 @@ void server::_addClient( int serverSocket ) {
 			+ ::ft_to_string(serverSocket)
 		);
 	}
-	// fcntl(client_socket, F_SETFL, fcntl(client_socket, F_GETFL, 0) | O_NONBLOCK);
 	// Watch for input, use Edge-Triggered MODE. (EPOLLET)
 	bool error = false;
 	struct epoll_event clt_event = ::addEpollEvent(

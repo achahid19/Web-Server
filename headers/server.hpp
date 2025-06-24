@@ -4,7 +4,6 @@
 #include <sys/socket.h> // socket sys call
 #include <netinet/in.h> // sockaddr_in structure
 #include <arpa/inet.h> // inet_addr function for host
-#include <fcntl.h> // fcntl().
 #include <sys/epoll.h>
 #include <vector>
 #include <map>
