@@ -104,6 +104,9 @@ void	config_file::_retrieveServerBlocks( void ) {
 		else if (line.find("client_max_body_size") != std::string::npos) {
 			this->_addClientMaxBodySizeDirective(line, &block);
 		}
+		else if (line.find("error_page") != std::string::npos) {
+			this->_addErrorPageDirective(line, &block);
+		}
 		else {
 			throw config_error("Unknown directive in server block: " + line);
 		}
@@ -165,6 +168,11 @@ void	config_file::_addIndexDirective( const std::string &line, server_block *blo
 void	config_file::_addClientMaxBodySizeDirective( const std::string &line, server_block *block ) {
 	this->_checkSeparator(line);
 	block->setClientMaxBodySize(::ft_trim_spaces(line.substr(line.find_first_of(" \t") + 1)));
+}
+
+void	config_file::_addErrorPageDirective( const std::string &line, server_block *block ) {
+	this->_checkSeparator(line);
+	block->setErrorPage(::ft_trim_spaces(line.substr(line.find_first_of(" \t") + 1)));
 }
 
 void	config_file::_checkSeparator( const std::string &line ) {

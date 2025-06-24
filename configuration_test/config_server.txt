@@ -15,12 +15,13 @@ server {
 
 	root	profile/;
 	index index.html;
+	error_page test;
 }
 
 
 server {
 	port 8080;
-	host		127.0.0.2   ;
+	host		127.0.0.1   ;
 	server_name hello;
 	root /var/html/;
 	index index.html;

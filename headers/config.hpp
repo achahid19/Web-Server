@@ -25,6 +25,7 @@ private:
 	void	_addRootDirective( const std::string &line, server_block *block );
 	void	_addIndexDirective( const std::string &line, server_block *block );
 	void	_addClientMaxBodySizeDirective( const std::string &line, server_block *block );
+	void	_addErrorPageDirective( const std::string &line, server_block *block );
 	void	_directivesCheckList( void );
 	void	_checkSeparator( const std::string &line);
 

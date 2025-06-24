@@ -68,6 +68,14 @@ void	server_block::setAsDefault( void ) {
 	this->_directives.insert(std::make_pair("default", "true"));
 }
 
+void	server_block::setErrorPage( const std::string &error_page ) {
+	this->_validDirectiveValue(error_page);
+	this->_directives.insert(std::make_pair(
+		"error_page",
+		ft_trim_spaces(error_page.substr(0, error_page.find(';')))
+	));
+}
+
 // Getters
 const std::string&	server_block::getPort( void ) const {
 	if (this->_directives.find("port") == this->_directives.end())
@@ -105,6 +113,12 @@ const std::string&	server_block::getClientMaxBodySize( void ) const {
 	return this->_directives.at("client_max_body_size");
 }
 
+const std::string&	server_block::getErrorPage( void ) const {
+	if (this->_directives.find("error_page") == this->_directives.end())
+		throw config_error("Error page directive not found in server block");
+	return this->_directives.at("error_page");
+}
+
 // safe getters
 const std::string	server_block::get_port_safe( void ) const {
 	return this->_directives.count("port") ? this->_directives.at("port") : "";
@@ -127,8 +141,17 @@ const std::string	server_block::get_index_safe( void ) const {
 }
 
 const std::string	server_block::get_client_max_body_size_safe( void ) const {
-	return this->_directives.count("client_max_body_size") \
-			? this->_directives.at("client_max_body_size") : "";
+	return (
+		this->_directives.count("client_max_body_size") \
+		? this->_directives.at("client_max_body_size") : ""
+	);
+}
+
+const std::string	server_block::get_error_page_safe( void ) const {
+	return (
+		this->_directives.count("error_page") \
+		? this->_directives.at("error_page") : ""
+	);
 }
 
 bool	server_block::isDefault( void ) const {
