@@ -5,7 +5,8 @@
 
 class server_block {
 private:
-	std::map<std::string, std::string> _directives; // directives map
+	std::map<std::string, std::string> _directives;
+	// location structure goes here, for later implementation
 
 	// std::string		_port;
 	// std::string		_host;
@@ -28,8 +29,10 @@ public:
 	void setHost(const std::string &host);
 	void setServerName(const std::string &server_name);
 	void setRoot(const std::string &root);
-	// void setClientMaxBodySize(unsigned int size);
-	// void setIndex(const std::string &index);
+	void setIndex(const std::string &index);
+	void setClientMaxBodySize(const std::string &size);
+
+	void	setAsDefault( void );
 
 	// getters
 	// those methods will throw an exception if the directive is not found
@@ -37,14 +40,18 @@ public:
 	const std::string& getHost() const;
 	const std::string& getServerName() const;
 	const std::string& getRoot() const;
-	// unsigned int getClientMaxBodySize() const;
-	// std::string getIndex() const;
-
+	const std::string& getIndex() const;
+	const std::string& getClientMaxBodySize() const;
+	
 	// those methods wont throw an exception if the directive is not found
 	const std::string get_port_safe() const;
 	const std::string get_host_safe() const;
 	const std::string get_server_name_safe() const;
 	const std::string get_root_safe() const;
+	const std::string get_index_safe() const;
+	const std::string get_client_max_body_size_safe() const;
+
+	bool	isDefault() const;
 
 	// exception handling
 	class config_error : public std::exception {

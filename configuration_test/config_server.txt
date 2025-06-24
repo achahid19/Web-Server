@@ -9,26 +9,24 @@ server {
 
 				host 127.0.0.1;
 				server_name test;
+				client_max_body_size 3000;
 
 	
 
 	root	profile/;
+	index index.html;
 }
 
 
 server {
 	port 8080;
-	host		127.0.0.1   ;
+	host		127.0.0.2   ;
 	server_name hello;
 	root /var/html/;
+	index index.html;
 }
 
-server {
-	port 8080;
-	host 127.0.0.2;
-	server_name test2;
-	root /var/html;
-}
+
 
 # For servers listening on same host:port
 #- The first server for a unique host:port combination that you 

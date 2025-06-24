@@ -7,11 +7,11 @@
 
 class config_file {
 private:
-	std::vector< server_block >	_server_blocks; // NEED TO FREE WITH DESTRUCTOR.
-	const char 					*_config_file_path;
-	int						_server_block_count;
-	std::ifstream					_file;
-	std::map<std::string, std::string>		_uniqueHosts;
+	std::vector< server_block >			_server_blocks;
+	const char 							*_config_file_path;
+	int									_server_block_count;
+	std::ifstream						_file;
+	std::map<std::string, std::string>	_uniqueHostPort;
 
 	// no copy, no instantiation without config file.
 	config_file( const config_file &copy );
@@ -23,6 +23,8 @@ private:
 	void	_addHostDirective( const std::string &line, server_block *block );
 	void	_addServerNameDirective( const std::string &line, server_block *block );
 	void	_addRootDirective( const std::string &line, server_block *block );
+	void	_addIndexDirective( const std::string &line, server_block *block );
+	void	_addClientMaxBodySizeDirective( const std::string &line, server_block *block );
 	void	_directivesCheckList( void );
 	void	_checkSeparator( const std::string &line);
 

@@ -98,12 +98,12 @@ void	config_file::_retrieveServerBlocks( void ) {
 		else if (line.find("root") != std::string::npos) {
 			this->_addRootDirective(line, &block);
 		}
-		// else if (line.find("client_max_body_size") != std::string::npos) {
-			// 	block->setClientMaxBodySize(stoi(line.substr(line.find(' ') + 1)));
-		// }
-		// else if (line.find("index") != std::string::npos) {
-			// 	block->setIndex(line.substr(line.find(' ') + 1));
-		// }
+		else if (line.find("index") != std::string::npos) {
+		 	this->_addIndexDirective(line, &block);
+		}
+		else if (line.find("client_max_body_size") != std::string::npos) {
+			this->_addClientMaxBodySizeDirective(line, &block);
+		}
 		else {
 			throw config_error("Unknown directive in server block: " + line);
 		}
@@ -119,27 +119,21 @@ void	config_file::_retrieveServerBlocks( void ) {
 }
 
 void	config_file::_directivesCheckList( void ) {
-	this->_uniqueHosts.clear();
+	this->_uniqueHostPort.clear();
 	for (
-		std::vector< server_block >::const_iterator it = this->_server_blocks.begin();
+		std::vector< server_block >::iterator it = this->_server_blocks.begin();
 		it != this->_server_blocks.end();
 		it++
 	) {
-		std::cout << it->getHost() << std::endl;
-		std::cout << it->getPort() << std::endl;
-
-		// set default if is a unique host:port.
-		if (this->_uniqueHosts[it->get_host_safe()] != it->get_port_safe()) {
-			std::cout << "check: " << it->get_host_safe() << ":" << it->get_port_safe() << std::endl;
-			this->_uniqueHosts[it->get_host_safe()] = it->get_port_safe();
-
-			// set this server block as default.
-
+		it->getHost();
+		it->getPort();
+		if (this->_uniqueHostPort[it->get_host_safe()] != it->get_port_safe()) {
+			this->_uniqueHostPort[it->get_host_safe()] = it->get_port_safe();
+			// set this server block as default for unique host:port
+			it->setAsDefault();
 		}
-		
-		// it->getServerName(); not mandatory
-		std::cout << it->getRoot() << std::endl;
-
+		it->getRoot();
+		it->getIndex();
 	}
 }
 
@@ -161,6 +155,16 @@ void	config_file::_addServerNameDirective( const std::string &line, server_block
 void	config_file::_addRootDirective( const std::string &line, server_block *block ) {
 	this->_checkSeparator(line);
 	block->setRoot(::ft_trim_spaces(line.substr(line.find_first_of(" \t") + 1)));
+}
+
+void	config_file::_addIndexDirective( const std::string &line, server_block *block ) {
+	this->_checkSeparator(line);
+	block->setIndex(::ft_trim_spaces(line.substr(line.find_first_of(" \t") + 1)));
+}
+
+void	config_file::_addClientMaxBodySizeDirective( const std::string &line, server_block *block ) {
+	this->_checkSeparator(line);
+	block->setClientMaxBodySize(::ft_trim_spaces(line.substr(line.find_first_of(" \t") + 1)));
 }
 
 void	config_file::_checkSeparator( const std::string &line ) {
