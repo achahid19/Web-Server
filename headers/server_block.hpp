@@ -8,14 +8,6 @@ private:
 	std::map<std::string, std::string> _directives;
 	// location structure goes here, for later implementation
 
-	// std::string		_port;
-	// std::string		_host;
-	// std::string		_server_name;
-	// std::string		_root;
-	// unsigned int	_client_max_body_size;
-	// std::string		_index;
-	// bool			_autoindex;
-
 	// helper methods
 	void _validDirectiveValue( const std::string &value );
 
