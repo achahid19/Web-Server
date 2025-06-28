@@ -1,4 +1,5 @@
 #include "request_line.hpp"
+#include "utils.hpp"
 
 // constructor
 request_line::request_line(void) {};
@@ -18,7 +19,13 @@ void request_line::loadRequestLine(const std::string& start_line) {
 		//throw std::invalid_argument("Invalid request line: missing URI");
 		return ;
 	}
-	this->_uri = start_line.substr(uri_start, uri_end - uri_start);
+	this->_url.loadUrl(
+		start_line.substr(uri_start, uri_end - uri_start)
+	);
+
+	URL_LOGS && std::cout << "URI: " << this->_url.getFullUrl() << std::endl;
+	URL_LOGS && std::cout << "Path: " << this->_url.getPathToResource() << std::endl;
+	URL_LOGS && std::cout << "Query: " << this->_url.getQueryString() << std::endl;
 
 	size_t version_start = uri_end + 1;
 	if (version_start >= start_line.size()) {
@@ -32,9 +39,7 @@ void request_line::loadRequestLine(const std::string& start_line) {
 void request_line::setMethod(const std::string& method) {
 	_method = method;
 }
-void request_line::setUri(const std::string& uri) { 
-	_uri = uri;
-}
+
 void request_line::setHttpVersion(const std::string& http_version) {
 	_http_version = http_version;
 }	
@@ -43,11 +48,13 @@ void request_line::setHttpVersion(const std::string& http_version) {
 std::string request_line::getMethod() const { 
 	return _method;
 }
-std::string request_line::getUri() const {
-	return _uri; 
-}
+
 std::string request_line::getHttpVersion() const { 
 	return _http_version;
+}
+
+std::string request_line::getUri() const {
+	return _url.getFullUrl();
 }
 
 std::ostream& operator<<(std::ostream& os, const request_line& rl) {
@@ -56,3 +63,8 @@ std::ostream& operator<<(std::ostream& os, const request_line& rl) {
 	   << "HTTP Version: " << rl.getHttpVersion();
 	return os;
 };
+
+// clear url
+void request_line::clearUrl(void) {
+	_url.clearUrl();
+}

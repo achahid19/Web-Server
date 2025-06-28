@@ -56,9 +56,12 @@ void request_parsing::parse(const std::string& request) {
 	}
 	
 	if (this->_body) {
-		/**
-		 * IMPLEMENT CHUNCKS MECHANISM LATER.
-		 */
+		// dont support chuncked transfer encoding.
+		if (this->_headers.getHeaders().find("Transfer-Encoding") != this->_headers.getHeaders().end()) {
+			// to handle properly for an error response.
+			INFO_LOGS && std::cout << "Transfer-Encoding: chuncked" << std::endl;
+			return (this->_parser_status = READING_ERROR, void());
+		}
 		size_t body_start = headers_end + 4;
 		size_t body_end = request.find("\r\n", body_start);
 		if (body_end == std::string::npos) {
@@ -74,9 +77,10 @@ void	request_parsing::resetParser( void ) {
 	this->_body = false;
 	this->_parser_status = NOT_STARTED;
 	this->_start_line.setHttpVersion("");
-	this->_start_line.setUri("");
+	this->_start_line.clearUrl();
 	this->_start_line.setMethod("");
 	this->_headers.clearHeaders();
+	this->_bodyContent.clear();
 };
 
 // getters
