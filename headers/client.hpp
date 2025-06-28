@@ -14,6 +14,10 @@ private:
 	static int		_num_conx; // track id's count.
 	static int		_connections; // open connections count.
 	int				_id; // client id, unique for each connection.
+	// add last time activity. add struct time.
+	// add the logic according parsing status
+	// (header) -> x timing.
+	// (body) -> y timing.
 
 	// parser
 	request_parsing	_request_parser;

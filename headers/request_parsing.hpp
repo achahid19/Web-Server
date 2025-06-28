@@ -15,6 +15,12 @@ enum parsing_status {
 	READING_ERROR
 };
 
+// struct PostFile{
+// 	int fd;
+// 	int offset;
+// 	size_t content_length; // 'stat' variable name
+// };
+
 class http_headers;
 class request_parsing;
 
@@ -27,7 +33,7 @@ private:
 	// request structure
 	request_line 	_start_line;
 	http_headers	_headers;
-	std::string		_bodyContent;
+	std::string		_bodyContent; // struct file, read nichan into the file.
 	
 	// Private copy constructor and assignment operator to prevent copying
 	request_parsing(const request_parsing& copy);

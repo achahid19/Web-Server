@@ -14,7 +14,8 @@ enum LogFlags {
 	DEBUG_LOGS = false,
 	INFO_LOGS = true,
 	REQUEST_LOGS = false,
-	CONFIG_LOGS = false
+	CONFIG_LOGS = false,
+	URL_LOGS = false,
 };
 
 // turn an int to a string in a c++98 compliant way
