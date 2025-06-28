@@ -55,7 +55,6 @@ server::server( const char *config_file ) {
 		));
 		bool error = false;
 		::addEpollEvent(this->_epoll_fd, serverSocket, EPOLLIN, &error);
-		error = false;
 		if (error) {
 			throw server_error("Error adding socket to epoll: " + it->first);
 		}
@@ -180,7 +179,7 @@ void server::server_run( void ) {
 
 				// this is a generic example of processing the request
 				{
-					/*
+					
 						// we got the request, process it
 						INFO_LOGS && std::cout << "------------- DATA ---------------" << std::endl;
 						INFO_LOGS && std::cout << client->getRequest();
@@ -197,7 +196,6 @@ void server::server_run( void ) {
 						http_response += "\r\n"; // End of headers
 						http_response += response_body; 
 						send(client_socket, http_response.c_str(), http_response.length(), 0);
-					*/
 					
 					/* RESPONSE HANDLER GOES HERE */
 					
