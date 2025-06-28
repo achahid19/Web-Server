@@ -1,11 +1,14 @@
 #pragma once
 
 #include <iostream>
+#include "url.hpp"
+
+class url;
 
 class request_line {
 private:
 	std::string	_method;
- 	std::string	_uri;
+ 	url			_url;
  	std::string	_http_version;
 
 public:
@@ -16,13 +19,15 @@ public:
 
 	// setters
 	void setMethod(const std::string& method);
-	void setUri(const std::string& uri);
 	void setHttpVersion(const std::string& http_version);
 
 	// getters
 	std::string getMethod() const;
 	std::string getUri() const;
 	std::string getHttpVersion() const;
+
+	// clear url
+	void clearUrl( void );
 };
 
 std::ostream& operator<<(std::ostream& os, const request_line& rl);
