@@ -24,6 +24,10 @@ int server::running = true; // flag to control server event's loop
  * binding them to an address and port, 
  * and then putting them in a listening state.
  * init the epoll mechanism to handle events.
+ * 
+ * @param config_file: the path to the configuration file.
+ * 
+ * Throws server_error if there is an error
  */
 server::server( const char *config_file ) {
 	this->_server_config.loadConfig(config_file);
@@ -62,9 +66,12 @@ server::server( const char *config_file ) {
 }
 
 /**
- * server::~server - deconstructor
+ * server::~server - destructor
  * 
- * Clean up server resources.
+ * This method closes all open file descriptors
+ * and deletes all client connections.
+ * It ensures that all resources are properly released
+ * when the server instance is destroyed.
  */
 server::~server( void ) {
 	for (
@@ -88,11 +95,24 @@ server::~server( void ) {
 };
 
 /**
- * server::server_run - This server method
- * run the server loop, waiting for events
- * on the server sockets, then handling them.
+ * server::server_run - main server loop
  * 
- * Return: void.
+ * This method runs the server, listening for incoming connections
+ * and handling client requests.
+ * It uses epoll to efficiently manage multiple connections
+ * and events.
+ * It handles three main cases:
+ * 1. New client connection: when a new client connects,
+ *   it adds the client to the server's connection list
+ *  and sets up the epoll event for reading.
+ * 2. Data from existing client: when data is available
+ *  from an existing client, it reads the request,
+ *  processes it, and updates the epoll event
+ *  to be writable if the request is complete.
+ * 3. Client socket is writable: when the client socket
+ * is writable, it sends the response back to the client.
+ * The server runs until it receives a termination signal
+ * (SIGINT).
  */
 void server::server_run( void ) {
 	signal(SIGINT, signalHandler);
@@ -231,9 +251,12 @@ void	server::_loadListeningSockets( void ) {
 /**
  * addClient - add a new client to the server.
  * 
- * @serverSocket: listening socket fd.
+ * @param serverSocket: listening socket fd.
  * 
  * Return: boolean.
+ * 
+ * Throws client_connection_error if there is an error
+ * accepting a new client connection.
  */
 void server::_addClient( int serverSocket ) {
 	int client_socket = accept(serverSocket, NULL, NULL);
@@ -268,11 +291,16 @@ void server::_addClient( int serverSocket ) {
 }
 
 /**
- * processRequest - process the request from the client.
+ * processRequest - server method to read the request from the client.
  * 
- * @request: reference to the request string to be filled.
- * @i: index of the event in the events vector.
- * @total_bytes: pointer to total bytes received.
+ * This method reads the request from the client socket
+ * in chunks of REQ_BUF_SIZE bytes,
+ * appends it to the client's request string,
+ * and updates the request parser's state.
+ * 
+ * @param request: reference to the request string to be filled.
+ * @param i: index of the event in the events vector.
+ * @param total_bytes: pointer to total bytes received.
  * 
  * Return: void.
  */
@@ -317,9 +345,9 @@ parsing_status	server::_readRequest(client *client, int i, ssize_t* read_bytes) 
 }
 
 /**
- * isServerSocket - check if the given socket is a server socket.
+ * isServerSocket - server method to check if the socket is a server socket.
  * 
- * @socket: listening socket fd.
+ * @param socket: listening socket fd.
  * 
  * Return: boolean
  */
@@ -336,13 +364,16 @@ bool server::_isServerSocket( int socket ) {
 }
 
 /**
- * serverBind - bind the server socket to the specified host and port.
+ * serverBind - This method bind the server socket to the specified host and port.
  * 
- * @host: the host address to bind to.
- * @port: the port number to bind to.
- * @serverSocket: listening socket fd.
+ * @param host: the host address to bind to.
+ * @param port: the port number to bind to.
+ * @param serverSocket: listening socket fd.
  * 
  * Return: bool.
+ * 
+ * Throws server_error if there is an error
+ * setting socket options or binding the socket.
  */
 static inline void serverBind( std::string const &host, int port, int serverSocket ) {
 	sockaddr_in	serverAddress;
@@ -371,7 +402,7 @@ static inline void serverBind( std::string const &host, int port, int serverSock
 /**
  * signalHandler - signal handler for SIGINT
  * 
- * @signal: the signal number (e.g., SIGINT)
+ * @param signal: the signal number (e.g., SIGINT)
  * 
  * Return: void.
  */
@@ -381,11 +412,26 @@ void server::signalHandler( int signal ) {
 }
 
 // exception handling
+
+/**
+ * server_error - Constructor for server_error exception.
+ * 
+ * @param msg: the error message.
+ * 
+ * Return: void.
+ */
 server::server_error::server_error( const std::string &msg ) : _msg(msg) {};
 const char* server::server_error::what() const throw() {
 	return _msg.c_str();
 }
 
+/**
+ * client_connection_error - Constructor for client_connection_error exception.
+ * 
+ * @param msg: the error message.
+ * 
+ * Return: void.
+ */
 server::client_connection_error::client_connection_error( const std::string &msg ) : _msg(msg) {};
 const char* server::client_connection_error::what() const throw() {
 	return _msg.c_str();

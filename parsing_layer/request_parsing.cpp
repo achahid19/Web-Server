@@ -1,13 +1,24 @@
 #include "request_parsing.hpp"
 #include "utils.hpp"
 
-// constructor
+/**
+ * request_parsing - Constructor for request_parsing class.
+ */
 request_parsing::request_parsing(void) {
 	this->_parser_status = NOT_STARTED;
 	this->_body = false;
 };
 
 // methods
+
+/**
+ * parse - Parse the HTTP request string.
+ * 
+ * This method processes the input request string, extracting the request line,
+ * headers, and body content if present. It updates the parser status accordingly.
+ * 
+ * @param request: the HTTP request string to be parsed.
+ */
 void request_parsing::parse(const std::string& request) {
 	if (request.empty()) {
 		return (this->_parser_status = NOT_STARTED, void());
@@ -84,18 +95,51 @@ void	request_parsing::resetParser( void ) {
 };
 
 // getters
+
+/**
+ * getStatus - Get the current parsing status.
+ * 
+ * This method returns the current status of the request parser,
+ * indicating whether it is in progress, completed, or has encountered an error.
+ * 
+ * @return: the current parsing status as an enum value.
+ */
 parsing_status request_parsing::getStatus() const {
 	return this->_parser_status;
 }
 
+/**
+ * getRequestLine - Get the parsed request line.
+ * 
+ * This method returns a constant reference to the request_line object,
+ * which contains the HTTP method, URI, and HTTP version extracted from the request.
+ * 
+ * @return: constant reference to the request_line object.
+ */
 request_line const& request_parsing::getRequestLine() const {
 	return this->_start_line;
 }
 
+/**
+ * getHeadersMap - Get the parsed HTTP headers.
+ * 
+ * This method returns a constant reference to the http_headers object,
+ * which contains the headers parsed from the request.
+ * 
+ * @return: constant reference to the http_headers object.
+ */
 http_headers const& request_parsing::getHeadersMap() const {
 	return this->_headers;
 }
 
+/**
+ * getBodyContent - Get the body content of the request.
+ * 
+ * This method returns a constant reference to the body content string,
+ * which contains the data sent in the body of the request, if any.
+ * 
+ * @return: constant reference to the body content string.
+ */
 std::string const&	request_parsing::getBodyContent() const {
 	return this->_bodyContent;
 }

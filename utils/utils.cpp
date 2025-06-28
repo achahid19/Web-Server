@@ -2,7 +2,7 @@
 
 /**
  * ft_to_string - convert an integer to a string c++98 compliant.
- * @value: integer to convert.
+ * @param value: integer to convert.
  * 
  * Return: string representation of the integer.
  */
@@ -15,7 +15,7 @@ std::string	ft_to_string( int value ) {
 
 /**
  * ft_trim_spaces - trim leading and trailing spaces from a string.
- * @str: the string to trim.
+ * @param str: the string to trim.
  * 
  * Return: trimmed string.
  */

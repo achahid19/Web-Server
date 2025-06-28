@@ -3,9 +3,9 @@
 /**
  * addEpollEvent - add a new event to the epoll instance
  * 
- * @epoll_fd: the epoll instance file descriptor.
- * @socket: the socket fd to monitor.
- * @events: the events to monitor (EPOLLIN, EPOLLOUT, etc.).
+ * @param epoll_fd: the epoll instance file descriptor.
+ * @param socket: the socket fd to monitor.
+ * @param events: the events to monitor (EPOLLIN, EPOLLOUT, etc.).
  * 
  * Return: struct epoll_event object containing the event information.
  */
@@ -28,10 +28,10 @@ struct epoll_event	addEpollEvent(
 /**
  * modEpollEvent - modify an existing event in the epoll instance
  * 
- * @epoll_fd: the epoll instance file descriptor.
- * @socket: the socket fd to modify.
- * @events: the new events to monitor (EPOLLIN, EPOLLOUT, etc.).
- * @event_obj: pointer to the epoll_event object to modify.
+ * @param epoll_fd: the epoll instance file descriptor.
+ * @param socket: the socket fd to modify.
+ * @param events: the new events to monitor (EPOLLIN, EPOLLOUT, etc.).
+ * @param event_obj: pointer to the epoll_event object to modify.
  * 
  * Return: void.
  */

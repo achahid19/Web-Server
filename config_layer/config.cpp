@@ -15,12 +15,20 @@
   * - Check if the list of directives is valid. DONE
   */
 
-// constructor
+/**
+ * config_file - Constructor for config_file class.
+ * 
+ * Initializes the server block count to 0 and prepares the file stream.
+ */
 config_file ::config_file( void ) {
 	this->_server_block_count = 0;
 };
 
-// destructor
+/**
+ * ~config_file - Destructor for config_file class.
+ * 
+ * Cleans up the server blocks and closes the file stream.
+ */
 config_file ::~config_file( void ) {
 	this->_server_blocks.clear();
 	_file.close();
@@ -31,7 +39,11 @@ config_file ::~config_file( void ) {
 };
 
 /**
- * loadConfig - Load configuration from a file.
+ * loadConfig - Load configuration file, parse it and retrieve server blocks.
+ * 
+ * @param config_file: the path to the configuration file.
+ * 
+ * Return: void.
  */
 void config_file::loadConfig( const char *config_file ) {
 	_config_file_path = config_file;
@@ -67,12 +79,27 @@ void config_file::loadConfig( const char *config_file ) {
 	this->_directivesCheckList();
 }
 
+/**
+ * addServerBlock - Add a server block to the configuration.
+ * 
+ * @param block: the server block to add.
+ * 
+ * Return: void.
+ */
 void config_file::addServerBlock( const server_block &block ) {
 	_server_blocks.push_back(block);
 }
 
 // helper methods
 
+/**
+ * _retrieveServerBlocks - Retrieve server blocks from the configuration file.
+ * 
+ * This method reads lines from the configuration file and populates
+ * the server_block object with directives.
+ * 
+ * Return: void.
+ */
 void	config_file::_retrieveServerBlocks( void ) {
 	server_block	block;
 	std::string		line;
@@ -121,6 +148,16 @@ void	config_file::_retrieveServerBlocks( void ) {
 	}
 }
 
+/**
+ * _directivesCheckList - Check mandatory directives and uniqueness of host:port.
+ * 
+ * This method iterates through all server blocks and checks if the
+ * mandatory directives are set. It also ensures that each host:port
+ * combination is unique, setting the first server block as default for
+ * each unique host:port.
+ * 
+ * Return: void.
+ */
 void	config_file::_directivesCheckList( void ) {
 	this->_uniqueHostPort.clear();
 	for (
@@ -140,41 +177,106 @@ void	config_file::_directivesCheckList( void ) {
 	}
 }
 
+/**
+ * _addPortDirective - Add port directive to the server block.
+ * 
+ * @param line: the line containing the port directive.
+ * @param block: the server block to add the directive to.
+ * 
+ * Return: void.
+ */
 void	config_file::_addPortDirective( const std::string &line, server_block *block ) {
 	this->_checkSeparator(line);
 	block->setPort(::ft_trim_spaces(line.substr(line.find_first_of(" \t") + 1)));
 }
 
+/**
+ * _addHostDirective - Add host directive to the server block.
+ * 
+ * @param line: the line containing the host directive.
+ * @param block: the server block to add the directive to.
+ * 
+ * Return: void.
+ */
 void	config_file::_addHostDirective( const std::string &line, server_block *block ) {
 	this->_checkSeparator(line);
 	block->setHost(::ft_trim_spaces(line.substr(line.find_first_of(" \t") + 1)));
 }
 
+/**
+ * _addServerNameDirective - Add server_name directive to the server block.
+ * 
+ * @param line: the line containing the server_name directive.
+ * @param block: the server block to add the directive to.
+ * 
+ * Return: void.
+ */
 void	config_file::_addServerNameDirective( const std::string &line, server_block *block ) {
 	this->_checkSeparator(line);
 	block->setServerName(::ft_trim_spaces(line.substr(line.find_first_of(" \t") + 1)));
 }
 
+/**
+ * _addRootDirective - Add root directive to the server block.
+ * 
+ * @param line: the line containing the root directive.
+ * @param block: the server block to add the directive to.
+ * 
+ * Return: void.
+ */
 void	config_file::_addRootDirective( const std::string &line, server_block *block ) {
 	this->_checkSeparator(line);
 	block->setRoot(::ft_trim_spaces(line.substr(line.find_first_of(" \t") + 1)));
 }
 
+/**
+ * _addIndexDirective - Add index directive to the server block.
+ * 
+ * @param line: the line containing the index directive.
+ * @param block: the server block to add the directive to.
+ * 
+ * Return: void.
+ */
 void	config_file::_addIndexDirective( const std::string &line, server_block *block ) {
 	this->_checkSeparator(line);
 	block->setIndex(::ft_trim_spaces(line.substr(line.find_first_of(" \t") + 1)));
 }
 
+/**
+ * _addClientMaxBodySizeDirective - Add client_max_body_size directive to the server block.
+ * 
+ * @param line: the line containing the client_max_body_size directive.
+ * @param block: the server block to add the directive to.
+ * 
+ * Return: void.
+ */
 void	config_file::_addClientMaxBodySizeDirective( const std::string &line, server_block *block ) {
 	this->_checkSeparator(line);
 	block->setClientMaxBodySize(::ft_trim_spaces(line.substr(line.find_first_of(" \t") + 1)));
 }
 
+/**
+ * _addErrorPageDirective - Add error_page directive to the server block.
+ * 
+ * @param line: the line containing the error_page directive.
+ * @param block: the server block to add the directive to.
+ * 
+ * Return: void.
+ */
 void	config_file::_addErrorPageDirective( const std::string &line, server_block *block ) {
 	this->_checkSeparator(line);
 	block->setErrorPage(::ft_trim_spaces(line.substr(line.find_first_of(" \t") + 1)));
 }
 
+/**
+ * _checkSeparator - Check if the line has a valid separator between directive and value.
+ * 
+ * @param line: the line to check.
+ * 
+ * Return: void.
+ * 
+ * Throws config_error if no valid separator is found.
+ */
 void	config_file::_checkSeparator( const std::string &line ) {
 	if (line.find_first_of(" \t") == std::string::npos) {
 		throw config_error("Invalid directive in server block: " + line);
@@ -182,8 +284,21 @@ void	config_file::_checkSeparator( const std::string &line ) {
 }
 
 // exception handling
+
+/**
+ * config_error - Constructor for config_error exception.
+ * 
+ * * @param msg: the error message.
+ * 
+ * * Return: void.
+ */
 config_file::config_error::config_error( const std::string &msg ) : _msg(msg) {};
 
+/**
+ * what - Returns the error message.
+ * 
+ * Return: const char* - the error message.
+ */
 const char* config_file::config_error::what() const throw() {
 	return _msg.c_str();
 }
