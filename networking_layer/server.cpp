@@ -220,7 +220,6 @@ void	server::_loadListeningSockets( void ) {
 		it != this->_server_config.getServerBlocks().end();
 		it++
 	) {
-		//std::string host = it->getHost().substr(0, it->getHost().find(';'));
 		this->_listening.insert(
 			std::make_pair(
 				it->get_host_safe(),
