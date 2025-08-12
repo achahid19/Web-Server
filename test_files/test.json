@@ -1,0 +1,22 @@
+{
+    "server": "Web Server Test",
+    "version": "1.0",
+    "features": [
+        "HTTP/1.1 compliance",
+        "GET method",
+        "POST method", 
+        "DELETE method",
+        "Static file serving",
+        "Directory listing",
+        "File uploads",
+        "CGI support",
+        "Error handling"
+    ],
+    "rfc_compliance": {
+        "rfc_9112": true,
+        "status_codes": "Implemented",
+        "headers": "Proper format",
+        "methods": "GET, POST, DELETE"
+    },
+    "timestamp": "2024-01-01T00:00:00Z"
+} 

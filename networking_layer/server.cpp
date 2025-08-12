@@ -3,6 +3,7 @@
 #include "utils.hpp"
 #include "client.hpp"
 #include "network_utils.hpp"
+#include "response.hpp"
 
 static inline void serverBind( std::string const &host, int port, int serverSocket );
 
@@ -197,27 +198,40 @@ void server::server_run( void ) {
 				int client_socket = this->_events[i].data.fd;
 				client *client = this->_connections[client_socket];
 
-				// this is a generic example of processing the request
+				// Process the request using the response layer
 				{
+					// we got the request, process it
+					INFO_LOGS && std::cout << "------------- DATA ---------------" << std::endl;
+					INFO_LOGS && std::cout << client->getRequest();
+					INFO_LOGS && std::cout << "------------- DATA ---------------" << std::endl;
+
+					// Find the appropriate server block for this request
+					server_block config_block;
+					bool found_config = false;
 					
-						// we got the request, process it
-						INFO_LOGS && std::cout << "------------- DATA ---------------" << std::endl;
-						INFO_LOGS && std::cout << client->getRequest();
-						INFO_LOGS && std::cout << "------------- DATA ---------------" << std::endl;
-
-						// example: echo server response
-						std::string response_body = "Body:" + client->getRequest() + "\n";
-						std::string content_length_str = ::ft_to_string(response_body.length());
-
-						std::string http_response = "HTTP/1.1 200 OK\r\n"; // status line
-						// HTTP headers
-						http_response += "Content-Type: text/plain\r\n"; 
-						http_response += "Content-Length: " + content_length_str + "\r\n";
-						http_response += "\r\n"; // End of headers
-						http_response += response_body; 
+					// For now, use the first server block as default
+					// In a full implementation, you'd match based on Host header
+					const std::vector<server_block>& blocks = this->_server_config.getServerBlocks();
+					if (!blocks.empty()) {
+						config_block = blocks[0];
+						found_config = true;
+					}
+					
+					if (!found_config) {
+						// Send 500 error if no configuration found
+						std::string error_response = "HTTP/1.1 500 Internal Server Error\r\n";
+						error_response += "Content-Type: text/html\r\n";
+						error_response += "Content-Length: 0\r\n\r\n";
+						send(client_socket, error_response.c_str(), error_response.length(), 0);
+					} else {
+						// Generate proper HTTP response using the response layer
+						response resp;
+						std::string http_response = resp.generateResponse(
+							client->getRequestParser(), 
+							config_block
+						);
 						send(client_socket, http_response.c_str(), http_response.length(), 0);
-					
-					/* RESPONSE HANDLER GOES HERE */
+					}
 					
 					client->clearReq();
 					client->getRequestParser().resetParser();
